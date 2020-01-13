@@ -10,10 +10,7 @@
 
 5. cmd: pipenv shell (enters virtual env; run each time doing work)
 
->> ???
-git remote add origin https://bachang1992@bitbucket.org/bachang1992/simulation.git
-
-git push -u origin master
-
 >> Steps to Remove
 note the environment & the pipfile & the pipfile.lock are distinct (lmao)
+
+~67538 kafka-esque steps, concluding in imbibing copious vodka
