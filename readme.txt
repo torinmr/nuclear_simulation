@@ -10,7 +10,17 @@
 
 5. cmd: pipenv shell (enters virtual env; run each time doing work)
 
+>> Do Each Worksession
+1. Pull.
+2. cmd: go to directory.
+3. pipenv shell (enter virtual env)
+4. jupyter lab
+5. (work)
+6. 
+
 >> Steps to Remove
 note the environment & the pipfile & the pipfile.lock are distinct (lmao)
 
 ~67538 kafka-esque steps, concluding in imbibing copious vodka
+
+"bork bork bork bork bork!!"
