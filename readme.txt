@@ -16,7 +16,8 @@
 3. pipenv shell (enter virtual env)
 4. jupyter lab
 5. (work)
-6. 
+6. stage, commit.
+7. push.
 
 >> Steps to Remove
 note the environment & the pipfile & the pipfile.lock are distinct (lmao)
