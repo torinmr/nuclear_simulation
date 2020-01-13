@@ -1,0 +1,3 @@
+Name,Latitude,Longitude,Kind
+test_ballistic_launcher,43.7104,135.0041,ballistic
+test_cruise_launcher,43.7104,135.0041,cruise
