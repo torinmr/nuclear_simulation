@@ -19,9 +19,7 @@
 6. stage, commit.
 7. push.
 
->> Steps to Remove
-note the environment & the pipfile & the pipfile.lock are distinct (lmao)
-
-~67538 kafka-esque steps, concluding in imbibing copious vodka
-
-"bork bork bork bork bork!!"
+>> Installing new packages
+1. MAKE SURE you are in the simulation directory.
+   - If you run the following command somewhere random, it will create a new pipenv environment.
+2. pipenv install <name of package>
