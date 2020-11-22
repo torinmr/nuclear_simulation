@@ -1,4 +1,7 @@
+from datetime import datetime
+from dateutil import tz
 import math
+import suntime
 
 EARTH_RADIUS = 6371  # In kilometers
 
@@ -37,11 +40,29 @@ class Location:
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
         
         return EARTH_RADIUS * c
+
+    def is_daylight(self, t):
+        """Returns true if it's between sunset and sunrise at the given location.
+        
+        Args:
+          t: Timezone-aware time (such as simulation.t).
+        """
+        sun = suntime.Sun(self.lat, self.lon)
+        today = t.date()
+        sunrise = sun.get_local_sunrise_time(date=today, local_time_zone=t.tzinfo)
+        sunset = sun.get_local_sunset_time(date=today, local_time_zone=t.tzinfo)
+        return sunrise.timetz() < t.timetz() < sunset.timetz()
     
     def to_string(self):
         return '({}, {})'.format(self.lat, self.lon)
     
+# Tests
 tokyo = Location(35.5895, 139.6917)
 rio = Location(-22.9068, -43.1729)
 assert math.fabs(tokyo.distance_to(rio) - 18580.0) < 10
 assert math.fabs(rio.distance_to(tokyo) - 18580.0) < 10
+shanghai = Location(31.23, 121.47)
+shanghai_tz =  tz.gettz('Asia/Shanghai')
+assert shanghai.is_daylight(datetime.fromisoformat('2021-01-20T10:00:00+08:00'))
+assert not shanghai.is_daylight(datetime.fromisoformat('2021-01-20T06:00:00+08:00'))
+

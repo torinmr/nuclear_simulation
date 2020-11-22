@@ -15,3 +15,4 @@
         - Plot status of TELs by missile base on Folium map.
 
 * Milestone 2: Simulated detection of TELs.
+    - [X] Implement sunlight tracking for TEL bases.

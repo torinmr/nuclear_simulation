@@ -1,14 +1,19 @@
 from datetime import datetime, timedelta
+from dateutil import tz
 from heapq import heappop, heappush
 
+from lib.location import Location
 from lib.renderer import Renderer
+from lib.tel_base import TELBase
+
+TZ = tz.gettz('Asia/Shanghai')
 
 class Simulation:
     def __init__(self,
                  start_datetime=datetime.fromisoformat('2021-01-20T12:00:00'),
                  runtime=None,
                  render_interval_mins=60,
-                 save_folder=''):
+                 output_folder=''):
         """Initialize the simulation.
         start_datetime: datetime object representing when the simulation starts.
           No timezone should be specified (assumed to be local time in China).
@@ -17,17 +22,17 @@ class Simulation:
           runs out of events.
         render_interval_mins: How frequently to produce a rendering of the
           simulation state, in minutes.
-        save_folder: Folder to save renders and other output data. If not provided,
+        output_folder: Folder to save renders and other output data. If not provided,
           no data will be saved.
         """
         self.event_queue = []
-        self.t = start_datetime
+        self.t = start_datetime.replace(tzinfo=TZ)
         self.next_event_id = 0
         if runtime:
-            self.end_datetime = start_datetime + runtime
+            self.end_datetime = self.t + runtime
         
         self.render_interval = timedelta(minutes=render_interval_mins)        
-        self.renderer = Renderer(self, save_folder)
+        self.renderer = Renderer(self, output_folder)
         
     def run(self):
         self._schedule_event_relative(
