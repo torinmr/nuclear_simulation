@@ -3,10 +3,13 @@ from dateutil import tz
 import math
 import suntime
 
+from lib.enums import TimeOfDay
+
 EARTH_RADIUS = 6371  # In kilometers
 
 class Location:
     """Location objects are immutable. Instead of modifying them, make a new location object."""
+    
     def __init__(self, lat, lon):
         """Construct a location.
 
@@ -41,8 +44,8 @@ class Location:
         
         return EARTH_RADIUS * c
 
-    def is_daylight(self, t):
-        """Returns true if it's between sunset and sunrise at the given location.
+    def get_time_of_day(self, t):
+        """Returns a TimeOfDay enum indicating if it's daytime or nighttime.
         
         Args:
           t: Timezone-aware time (such as simulation.t).
@@ -51,7 +54,10 @@ class Location:
         today = t.date()
         sunrise = sun.get_local_sunrise_time(date=today, local_time_zone=t.tzinfo)
         sunset = sun.get_local_sunset_time(date=today, local_time_zone=t.tzinfo)
-        return sunrise.timetz() < t.timetz() < sunset.timetz()
+        if sunrise.timetz() < t.timetz() < sunset.timetz():
+            return TimeOfDay.DAY
+        else:
+            return TimeOfDay.NIGHT
     
     def to_string(self):
         return '({}, {})'.format(self.lat, self.lon)
@@ -63,6 +69,6 @@ assert math.fabs(tokyo.distance_to(rio) - 18580.0) < 10
 assert math.fabs(rio.distance_to(tokyo) - 18580.0) < 10
 shanghai = Location(31.23, 121.47)
 shanghai_tz =  tz.gettz('Asia/Shanghai')
-assert shanghai.is_daylight(datetime.fromisoformat('2021-01-20T10:00:00+08:00'))
-assert not shanghai.is_daylight(datetime.fromisoformat('2021-01-20T06:00:00+08:00'))
+assert shanghai.get_time_of_day(datetime.fromisoformat('2021-01-20T10:00:00+08:00')) == TimeOfDay.DAY
+assert shanghai.get_time_of_day(datetime.fromisoformat('2021-01-20T06:00:00+08:00')) == TimeOfDay.NIGHT
 

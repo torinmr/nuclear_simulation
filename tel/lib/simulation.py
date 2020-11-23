@@ -1,19 +1,26 @@
 from datetime import datetime, timedelta
 from dateutil import tz
+from enum import Enum, auto
 from heapq import heappop, heappush
+import random
 
+from lib.enums import AlertLevel
 from lib.location import Location
 from lib.renderer import Renderer
+from lib.tel import TEL
 from lib.tel_base import TELBase
+from lib.tel_strategy import load_strategies
 
 TZ = tz.gettz('Asia/Shanghai')
 
-class Simulation:
+class Simulation:     
     def __init__(self,
                  start_datetime=datetime.fromisoformat('2021-01-20T12:00:00'),
                  runtime=None,
                  render_interval_mins=60,
-                 output_folder=''):
+                 output_folder='',
+                 rng_seed=None,
+                 alert_level=AlertLevel.PEACETIME):
         """Initialize the simulation.
         start_datetime: datetime object representing when the simulation starts.
           No timezone should be specified (assumed to be local time in China).
@@ -24,7 +31,11 @@ class Simulation:
           simulation state, in minutes.
         output_folder: Folder to save renders and other output data. If not provided,
           no data will be saved.
+        rng_seed: Optional integer. If provided, use a fixed seed which should make
+          the simulation deterministic. If not provided use a random seed.
+        alert_level: An AlertLevel enum value.
         """
+        random.seed(a=rng_seed)
         self.event_queue = []
         self.t = start_datetime.replace(tzinfo=TZ)
         self.next_event_id = 0
@@ -33,13 +44,20 @@ class Simulation:
         
         self.render_interval = timedelta(minutes=render_interval_mins)        
         self.renderer = Renderer(self, output_folder)
+        self.schedule_event_relative(
+            self.renderer.render, timedelta(), self.render_interval)
+        self.alert_level = alert_level
+        
+        self.tel_strategies = load_strategies('data/tel_strategies.csv')
+        self.base = TELBase(self, "Hanzhong", Location(33, 107))
+        for i in range(10):
+            self.base.tels.append(TEL(self.base, strategies=self.tel_strategies))
         
     def run(self):
-        self._schedule_event_relative(
-            timedelta(), self.renderer.render, self.render_interval)
         while self._process_next_event():
             pass
-        self.renderer.render()
+        if self.renderer.last_render_time != self.t:
+            self.renderer.render()
     
     def _process_next_event(self):
         """Pop the next event off of the queue and resolve it.
@@ -57,14 +75,14 @@ class Simulation:
         else:
             return False
 
-    def _schedule_event_at_time(self, future_datetime, event):
+    def _schedule_event_at_time(self, event, future_datetime):
         """Schedule an event for future execution.
         
         Args:
-          future_datetime: A datetime indicating when the event should
-            take place. Not scheduled if it's in the past.
           event: A lambda (with no arguments) that resolves the effects of
                  the event (including enqueuing any future events).
+          future_datetime: A datetime indicating when the event should
+            take place. Not scheduled if it's in the past.
         """
         if future_datetime < self.t:
             print("ERROR: Tried to schedule event in the past.")
@@ -79,22 +97,22 @@ class Simulation:
         heappush(self.event_queue, (future_datetime, self.next_event_id, event))
         self.next_event_id += 1
         
-    def _schedule_event_relative(self, delta, event, repeat_interval=None):
+    def schedule_event_relative(self, event, delta, repeat_interval=None):
         """Schedule an event to happen at a relative future time
            (e.g. one hour from now).
            
         Args:
-          delta: timedelta indicating how far in the future the event should happen.
           event: A lambda (with no arguments) that resolves the effects of
                  the event (including enqueuing any future events).
+          delta: timedelta indicating how far in the future the event should happen.
           repeat_interval: Optional timedelta. If set, repeat the event on this
             interval after the first occurrence.
         """
         if repeat_interval:
             def repeat_event():
                 event()
-                self._schedule_event_relative(repeat_interval, event,
-                                              repeat_interval=repeat_interval)
-            self._schedule_event_at_time(self.t + delta, repeat_event)
+                self.schedule_event_relative(event, repeat_interval,
+                                             repeat_interval=repeat_interval)
+            self._schedule_event_at_time(repeat_event, self.t + delta)
         else:
-            self._schedule_event_at_time(self.t + delta, event)
+            self._schedule_event_at_time(event, self.t + delta)
