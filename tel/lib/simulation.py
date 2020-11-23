@@ -5,11 +5,8 @@ from heapq import heappop, heappush
 import random
 
 from lib.enums import AlertLevel
-from lib.location import Location
 from lib.renderer import Renderer
-from lib.tel import TEL
-from lib.tel_base import TELBase
-from lib.tel_strategy import load_strategies
+from lib.tel_base import TELBase, load_bases
 
 TZ = tz.gettz('Asia/Shanghai')
 
@@ -48,12 +45,12 @@ class Simulation:
             self.renderer.render, timedelta(), self.render_interval)
         self.alert_level = alert_level
         
-        self.tel_strategies = load_strategies('data/tel_strategies.csv')
-        self.base = TELBase(self, "Hanzhong", Location(33, 107))
-        for i in range(10):
-            self.base.tels.append(TEL(self.base, strategies=self.tel_strategies))
+        self.bases = load_bases(base_filename='data/tel_bases.csv',
+                                strategy_filename='data/tel_strategy.csv')
         
     def run(self):
+        for base in self.bases:
+            base.start(self)
         while self._process_next_event():
             pass
         if self.renderer.last_render_time != self.t:

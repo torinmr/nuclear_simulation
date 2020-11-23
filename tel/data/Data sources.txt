@@ -1,0 +1,2 @@
+tel_strategy.csv: Based on heuristics.
+tel_bases.csv: From Lewis et al (https://www.nti.org/analysis/articles/chinas-growing-missile-arsenal-and-the-risk-of-a-taiwan-missile-crisis/).

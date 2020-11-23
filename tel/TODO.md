@@ -8,7 +8,7 @@
         - Support different probability tables based on time of day and alert level.
         - Support configuring probability tables in a file (maybe)
         - Integrate a few TELs manually into the simulation for testing.
-    - [ ] Configuration of TELs.
+    - [X] Configuration of TELs.
         - Support loading missile base coordinates, with accompanying TEL info.
         - Add TELs to simulation from configuration.
     - [ ] Visualization of TELs.

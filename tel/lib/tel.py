@@ -14,30 +14,31 @@ class TEL:
     """
     
     def __init__(self, base, tel_type=TELType.BASIC,
-                 initial_state=TELState.IN_BASE, strategies=None):
+                 initial_state=TELState.IN_BASE, strategy=None):
         """Initialize a TEL object.
         
         Args:
           base: The TELBase this TEL belongs to.
           tel_type: A TELType enum value.
           initial_state: A TELState enum value.
-          strategies: A strategy dict, from lib.tel_strategy.load_strategies. Required.
+          strategy: A strategy dict, from lib.tel_strategy.load_strategy. Required.
         """
         self.base = base
         self.type = tel_type
         self.state = initial_state
-        self.s = base.s
-        self.s.schedule_event_relative(self.update_state,
-                                       timedelta(minutes=random.randrange(60)),
-                                       repeat_interval=timedelta(minutes=60))
-        assert strategies is not None
-        self.strategies = strategies
+        assert strategy is not None
+        self.strategy = strategy
+        
+    def start(self, s):
+        s.schedule_event_relative(lambda: self.update_state(s),
+                                  timedelta(minutes=random.randrange(60)),
+                                  repeat_interval=timedelta(minutes=60))
     
-    def update_state(self):
-        transition_probs = self.strategies[
+    def update_state(self, s):
+        transition_probs = self.strategy[
             (self.type,
-             self.s.alert_level,
-             self.base.location.get_time_of_day(self.s.t),
+             s.alert_level,
+             self.base.location.get_time_of_day(s.t),
              self.state)]
         next_state = random.choices(list(transition_probs.keys()),
                                     list(transition_probs.values()))[0]

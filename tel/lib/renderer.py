@@ -5,8 +5,9 @@ class Renderer:
         self.last_render_time = None
         
     def render(self):
-        print("Rendering at time: ", self.s.t)
-        print(self.s.base.status())
-        print(self.s.base.tel_state_summary())
+        print("*** Rendering at time: ", self.s.t)
+        for base in self.s.bases:
+            print(base.status())
+            print(base.tel_state_summary())
         print()
         self.last_render_time = self.s.t
