@@ -5,12 +5,13 @@ from heapq import heappop, heappush
 import random
 
 from lib.enums import AlertLevel
+from lib.intelligence import Intelligence
 from lib.renderer import Renderer
 from lib.tel_base import TELBase, load_bases
 
 TZ = tz.gettz('Asia/Shanghai')
 
-class Simulation:     
+class Simulation:
     def __init__(self,
                  start_datetime=datetime.fromisoformat('2021-01-20T12:00:00'),
                  runtime=None,
@@ -47,10 +48,25 @@ class Simulation:
         
         self.bases = load_bases(base_filename='data/tel_bases.csv',
                                 strategy_filename='data/tel_strategy.csv')
+        self.tel_from_uid = {}
+        for base in self.bases:
+            for tel in base.tels:
+                self.tel_from_uid[tel.uid] = tel
         
-    def run(self):
+        self.intelligence = Intelligence()
+        self.start()
+        
+    def tels(self):
+        return self.tel_from_uid.values()
+        
+    def start(self):
+        """Start each of the entities in the simulation (i.e. schedule their update events)."""
         for base in self.bases:
             base.start(self)
+        self.intelligence.start(self)
+        
+    def run(self):
+        """Run the simulation loop until there are no more events, or the max time is reached."""
         while self._process_next_event():
             pass
         if self.renderer.last_render_time != self.t:

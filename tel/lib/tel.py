@@ -13,17 +13,19 @@ class TEL:
     tunnel, etc).
     """
     
-    def __init__(self, base, tel_type=TELType.BASIC,
+    def __init__(self, base, uid, tel_type=TELType.BASIC,
                  initial_state=TELState.IN_BASE, strategy=None):
         """Initialize a TEL object.
         
         Args:
           base: The TELBase this TEL belongs to.
+          uid: Unique identifier for this TEL, unique among all TELs in the simulation.
           tel_type: A TELType enum value.
           initial_state: A TELState enum value.
           strategy: A strategy dict, from lib.tel_strategy.load_strategy. Required.
         """
         self.base = base
+        self.uid = uid
         self.type = tel_type
         self.state = initial_state
         assert strategy is not None
@@ -45,5 +47,5 @@ class TEL:
         self.state = next_state
         
     def status(self):
-        return '{} TEL associated with {} Base, current state: {}'.format(
-            self.type.name, self.base.name, self.state.name)
+        return '{} TEL associated with {} Base. uid: {}, current state: {}'.format(
+            self.type.name, self.base.name, self.uid, self.state.name)

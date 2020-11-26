@@ -58,6 +58,12 @@ class Location:
             return TimeOfDay.DAY
         else:
             return TimeOfDay.NIGHT
+        
+    def is_day(self, t):
+        return self.get_time_of_day(t) == TimeOfDay.DAY
+    
+    def is_night(self, t):
+        return self.get_time_of_day(t) == TimeOfDay.NIGHT
     
     def to_string(self):
         return '({}, {})'.format(self.lat, self.lon)

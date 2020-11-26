@@ -16,7 +16,8 @@ class TELBase:
     def add_tel(self, **kwargs):
         """Construct a TEL and add it to this base.
         Forwards all keyword args to the TEL constructor."""
-        self.tels.append(TEL(self, **kwargs))
+        uid = self.name + str(len(self.tels))
+        self.tels.append(TEL(self, uid, **kwargs))
         
     def start(self, s):
         for tel in self.tels:
