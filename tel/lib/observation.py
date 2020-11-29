@@ -1,8 +1,25 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
 
+def observation_stats(obs):
+    """Print stats on a collection of observations."""
+    return "{} TELs observed, {} non-TEL observations".format(
+        sum([o.multiplicity for o in obs if o.tuid]),
+        sum([o.multiplicity for o in obs if not o.tuid]))
+
+def analysis_stats(obs):
+    """Print stats on a collection of observations after analysis"""
+    tp = sum([o.multiplicity for o in obs if o.tuid])
+    otp = sum([o.original_multiplicity for o in obs if o.tuid])
+    tpr = tp/otp if otp else 0
+    fp = sum([o.multiplicity for o in obs if not o.tuid])
+    ofp = sum([o.original_multiplicity for o in obs if not o.tuid])
+    fpr = fp/ofp if ofp else 0
+    return "{}/{} ({:.2%}) TELs observed, {}/{} ({:.2%}) non-TEL observations".format(
+        tp, otp, tpr, fp, ofp, fpr)
+
 class Observation:
-    def __init__(self, t, tuid, multiplicity=1):
+    def __init__(self, t, tuid, multiplicity=1, method=None):
         """Create an observation object.
         
         Args:
@@ -14,10 +31,14 @@ class Observation:
             example, 10,000 satellite images not containing a TEL could be
             represented by a single Observation object with multiplicity 10,000,
             rather than by 10,000 individual objects.
+          method: enums.DetectionMethod enum.
         """
         self.t = t
         self.tuid = tuid
         self.multiplicity = multiplicity
+        self.original_multiplicity = self.multiplicity
+        assert method is not None
+        self.method = method
 
 class Observer(ABC):
     def __init__(self):

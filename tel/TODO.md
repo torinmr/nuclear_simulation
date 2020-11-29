@@ -23,4 +23,5 @@
         - Satellite pass simulation (use https://github.com/skyfielders?)
     - [X] Implement SAR analyzer
     - [X] Integrate multiple sources of analysis data in working simulation.
-    - [ ] Implement better method of reporting on and analyzing detection latency.
+    - [X] Implement better method of reporting on and analyzing detection latency.
+    - [ ] Implement analytics/visualization of detection latency and false positives changing over time.

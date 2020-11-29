@@ -28,7 +28,7 @@ class TEL:
         self.uid = uid
         self.type = tel_type
         self.state = initial_state
-        assert strategy is not None
+        assert strategy is not None 
         self.strategy = strategy
         
     def start(self, s):

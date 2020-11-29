@@ -1,5 +1,6 @@
 from numpy import random
 
+from lib.enums import DetectionMethod
 from lib.observation import Observation, Observer
 
 class SARObserver(Observer):

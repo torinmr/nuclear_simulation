@@ -41,9 +41,7 @@ class Simulation:
             self.end_datetime = self.t + runtime
         
         self.render_interval = timedelta(minutes=render_interval_mins)        
-        self.renderer = Renderer(self, output_folder)
-        self.schedule_event_relative(
-            self.renderer.render, timedelta(), self.render_interval)
+        self.renderer = Renderer(output_folder)
         self.alert_level = alert_level
         
         self.bases = load_bases(base_filename='data/tel_bases.csv',
@@ -64,13 +62,13 @@ class Simulation:
         for base in self.bases:
             base.start(self)
         self.intelligence.start(self)
+        self.renderer.start(self)
         
     def run(self):
         """Run the simulation loop until there are no more events, or the max time is reached."""
         while self._process_next_event():
             pass
-        if self.renderer.last_render_time != self.t:
-            self.renderer.render()
+        self.renderer.render(self)
     
     def _process_next_event(self):
         """Pop the next event off of the queue and resolve it.

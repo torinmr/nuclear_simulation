@@ -1,17 +1,14 @@
 from datetime import timedelta
 from numpy import random
 
-from lib.observation import Observation, Analyzer
-    
-def stats(obs):
-    return "{} TELs observed, {} non-TEL observations".format(
-        sum([o.multiplicity for o in obs if o.tuid]),
-        sum([o.multiplicity for o in obs if not o.tuid]))
+from lib.observation import Observation, Analyzer, observation_stats, analysis_stats
+from lib.time import format_time
 
 class ImageryAnalyzer(Analyzer):
-    def __init__(self, ml_processing_time=timedelta(minutes=5),
+    def __init__(self, name, ml_processing_time=timedelta(minutes=5),
                  ml_fp=.00145, ml_fn=.05, human_fp=.0005, human_fn=.05,
                  human_examples_per_minute=7800):
+        self.name = name
         self.ml_processing_time = timedelta(minutes=5)
         self.ml_fp = ml_fp
         self.ml_fn = ml_fn
@@ -33,7 +30,7 @@ class ImageryAnalyzer(Analyzer):
             else:
                 p = fp
             obs.multiplicity = random.binomial(n=obs.multiplicity, p=p)
-        return list(filter(lambda o: o.multiplicity > 0, observations))
+        return observations
         
     def human_process(self, observations):
         return self.process(observations, fp=self.human_fp, fn=self.human_fn)
@@ -50,7 +47,8 @@ class ImageryAnalyzer(Analyzer):
             elapsed_minutes = (t - start_time).seconds / 60
             if elapsed_minutes * self.human_examples_per_minute >= num_observations:
                 ret = self.human_process(obs)
-                print("Finished human processing at time {}: {}".format(t, stats(ret)))
+                print("{} human processing at {} done: {}".format(
+                    self.name, format_time(t), analysis_stats(ret)))
                 self.human_processing = None
         
         if self.ml_processing:
@@ -59,15 +57,17 @@ class ImageryAnalyzer(Analyzer):
             # "ml_example_per_minute" value.
             if t - start_time >= self.ml_processing_time:
                 self.waiting_for_human_processing = self.ml_process(obs)
-                print("Finished ML processing at time {}: {}".format(t, stats(self.waiting_for_human_processing)))
+                print("{} ML processing at {} done: {}".format(
+                    self.name, format_time(t), analysis_stats(self.waiting_for_human_processing)))
                 self.ml_processing = None
 
         if self.waiting_for_human_processing and not self.human_processing:
             self.human_processing = (t, self.waiting_for_human_processing)
             self.waiting_for_human_processing = None
         
-        if not self.ml_processing:
+        if not self.ml_processing and observations:
             self.ml_processing = (t, observations)
-            print("EO data available at {}: {}".format(t, stats(observations)))
+            print("{} data available at {}: {}".format(
+                self.name, format_time(t), observation_stats(observations)))
             
         return ret

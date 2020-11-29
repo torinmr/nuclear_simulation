@@ -15,3 +15,9 @@ class TELType(Enum):
 class AlertLevel(Enum):
     PEACETIME = auto()
     HIGH_ALERT = auto()
+    
+class DetectionMethod(Enum):
+    # Location is assumed known at the beginning of the simulation.
+    INITIAL = auto()
+    EO = auto()
+    SAR = auto()
