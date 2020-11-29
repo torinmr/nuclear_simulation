@@ -17,16 +17,16 @@ class Intelligence:
         all_observations = []
 
         raw_eo_observations = self.eo_observer.observe(s)
-        analyzed_eo_observations = self.eo_analyzer.analyze(raw_eo_observations)
+        analyzed_eo_observations = self.eo_analyzer.analyze(raw_eo_observations, s.t)
         all_observations += analyzed_eo_observations
         
         # Similar stanzas for other types of observations.
-        
+
         num_false_positives = 0
         obs_from_tuid = defaultdict(list)
         for obs in all_observations:
             if obs.tuid:
-                obs_from_tuid[tuid].append(obs)
+                obs_from_tuid[obs.tuid].append(obs)
             else:
                 num_false_positives += obs.multiplicity
         
@@ -36,4 +36,5 @@ class Intelligence:
             total_num_tels += 1
             if tel.uid in obs_from_tuid:
                 num_tels_detected += 1
-        print("{} out of {} TELs detected.".format(num_tels_detected, total_num_tels))
+        if all_observations:
+            print("{} out of {} TELs detected.".format(num_tels_detected, total_num_tels))

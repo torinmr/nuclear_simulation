@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from dateutil import tz
 from enum import Enum, auto
 from heapq import heappop, heappush
-import random
+from numpy import random
 
 from lib.enums import AlertLevel
 from lib.intelligence import Intelligence
@@ -33,7 +33,7 @@ class Simulation:
           the simulation deterministic. If not provided use a random seed.
         alert_level: An AlertLevel enum value.
         """
-        random.seed(a=rng_seed)
+        random.seed(seed=rng_seed)
         self.event_queue = []
         self.t = start_datetime.replace(tzinfo=TZ)
         self.next_event_id = 0

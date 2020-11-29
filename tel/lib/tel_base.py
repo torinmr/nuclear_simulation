@@ -8,9 +8,11 @@ from lib.tel_strategy import load_strategy
 
 class TELBase:
     """A home base out of which several TELs are stationed."""
-    def __init__(self, name, location):
+    def __init__(self, name, location, cloud_cover=None):
         self.name = name
         self.location = location
+        assert cloud_cover
+        self.cloud_cover = cloud_cover
         self.tels = []
         
     def add_tel(self, **kwargs):
@@ -40,8 +42,9 @@ def load_base(row, strategy):
     name = row['name']
     lat = float(row['latitude'])
     lon = float(row['longitude'])
+    cloud_cover = float(row['cloud_cover'])
     
-    base = TELBase(name, Location(lat, lon))
+    base = TELBase(name, Location(lat, lon), cloud_cover=cloud_cover)
     for tel_type in TELType:
         if tel_type.name not in row:
             print("No column for {} in TEL base csv file".format(tel_type.name))

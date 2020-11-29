@@ -16,3 +16,10 @@
 
 * Milestone 2: Simulated detection of TELs.
     - [X] Implement sunlight tracking for TEL bases.
+    - [X] Implement basic skeleton of US intelligence tracking logic.
+    - [X] Implement EO observer
+    - [X] Implement EO analyzer
+    - [ ] Implement SAR observer
+        - Satellite pass simulation (use https://github.com/skyfielders?)
+    - [ ] Implement SAR analyzer
+    - [ ] Integrate multiple sources of analysis data in working simulation.

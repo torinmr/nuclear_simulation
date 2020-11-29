@@ -1,6 +1,6 @@
 from datetime import timedelta
 from enum import Enum, auto
-import random
+from numpy import random
 
 from lib.enums import TELState, TELType
 
@@ -33,7 +33,7 @@ class TEL:
         
     def start(self, s):
         s.schedule_event_relative(lambda: self.update_state(s),
-                                  timedelta(minutes=random.randrange(60)),
+                                  timedelta(minutes=random.randint(0, 60)),
                                   repeat_interval=timedelta(minutes=60))
     
     def update_state(self, s):
@@ -42,8 +42,8 @@ class TEL:
              s.alert_level,
              self.base.location.get_time_of_day(s.t),
              self.state)]
-        next_state = random.choices(list(transition_probs.keys()),
-                                    list(transition_probs.values()))[0]
+        next_state = random.choice(list(transition_probs.keys()),
+                                   p=list(transition_probs.values()))
         self.state = next_state
         
     def status(self):

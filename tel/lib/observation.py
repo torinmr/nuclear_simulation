@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections import namedtuple
 
 class Observation:
-    def __init__(self, t, tuid, multiplicity):
+    def __init__(self, t, tuid, multiplicity=1):
         """Create an observation object.
         
         Args:
@@ -15,6 +15,7 @@ class Observation:
             represented by a single Observation object with multiplicity 10,000,
             rather than by 10,000 individual objects.
         """
+        self.t = t
         self.tuid = tuid
         self.multiplicity = multiplicity
 
@@ -41,11 +42,12 @@ class Analyzer(ABC):
         super().__init__()
     
     @abstractmethod
-    def analyze(self, observations):
+    def analyze(self, observations, t):
         """Analyze observations emitted by an Observer.
         
         Args:
           observations: A sequence of observations (positive and negative).
+          t: Current simulation time.
         Returns:
           A collection of Observations representing what the analysis process believes
           to be TELs. Can still contain negative examples to represent false positives
