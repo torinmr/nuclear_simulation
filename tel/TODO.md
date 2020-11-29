@@ -21,5 +21,6 @@
     - [X] Implement EO analyzer
     - [ ] Implement SAR observer
         - Satellite pass simulation (use https://github.com/skyfielders?)
-    - [ ] Implement SAR analyzer
-    - [ ] Integrate multiple sources of analysis data in working simulation.
+    - [X] Implement SAR analyzer
+    - [X] Integrate multiple sources of analysis data in working simulation.
+    - [ ] Implement better method of reporting on and analyzing detection latency.
