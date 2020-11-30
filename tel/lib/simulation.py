@@ -69,6 +69,7 @@ class Simulation:
         while self._process_next_event():
             pass
         self.renderer.render(self)
+        self.renderer.final_summary()
     
     def _process_next_event(self):
         """Pop the next event off of the queue and resolve it.

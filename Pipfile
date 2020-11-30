@@ -9,6 +9,7 @@ verify_ssl = true
 jupyterlab = "*"
 folium = "*"
 suntime = "*"
+matplotlib = "*"
 
 [requires]
 python_version = "3.7"

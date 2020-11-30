@@ -62,6 +62,23 @@ class Intelligence:
         for method, count in new_fp_map.items():
             if count > 0:
                 self.fp_map[method] = count
+                
+    # TODO: Refactor redundant cod between this and print_stats().
+    def stats(self, s):
+        tels_detected_per_method = Counter()
+        total_age = timedelta()
+        total_num_tels = 0
+        for tel in s.tels():
+            total_num_tels += 1
+            if tel.uid in self.detection_map:
+                obs = self.detection_map[tel.uid]
+                tels_detected_per_method[obs.method] += 1
+                total_age += s.t - obs.t
+
+        total_tels_detected = sum(tels_detected_per_method.values())
+        avg_age = total_age / total_tels_detected
+        total_fp = sum(self.fp_map.values())
+        return avg_age, total_fp
         
     def print_stats(self, s):
         tels_detected_per_method = Counter()
