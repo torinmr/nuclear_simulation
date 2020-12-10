@@ -1,7 +1,26 @@
+from abc import ABC, abstractmethod
 from numpy import random
 
 from lib.enums import DetectionMethod
-from lib.observation import Observation, Observer
+from lib.intelligence_types import Observation
+
+class Observer(ABC):
+    def __init__(self):
+        super().__init__()
+    
+    @abstractmethod
+    def observe(self, s):
+        """Observe the current state of the simulation, and emit observations.
+        
+        Args:
+          s: The simulation object.
+        Returns:
+          A collection of Observations representing unprocessed sensor data. Should
+          include both positive observations (corresponding to any and all TELs this
+          Observer can observe at the moment), and negative observations (corresponding
+          to satellite images containing no TELs, for example).
+        """  
+        pass
 
 class EOObserver(Observer):
     def __init__(self):
@@ -26,3 +45,10 @@ class EOObserver(Observer):
         observations.append(Observation(s.t, None, multiplicity=20_000_000,
                                         method=DetectionMethod.EO))
         return observations
+
+class SARObserver(Observer):
+    def __init__(self):
+        super().__init__()
+    
+    def observe(self, s):
+        return []

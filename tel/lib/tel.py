@@ -1,6 +1,7 @@
 from datetime import timedelta
 from enum import Enum, auto
 from numpy import random
+from uuid import uuid4
 
 from lib.enums import TELState, TELType
 
@@ -13,19 +14,20 @@ class TEL:
     tunnel, etc).
     """
     
-    def __init__(self, base, uid, tel_type=TELType.BASIC,
+    def __init__(self, base, name, tel_type=TELType.BASIC,
                  initial_state=TELState.IN_BASE, strategy=None):
         """Initialize a TEL object.
         
         Args:
           base: The TELBase this TEL belongs to.
-          uid: Unique identifier for this TEL, unique among all TELs in the simulation.
+          name: Human readable name for this TEL.
           tel_type: A TELType enum value.
           initial_state: A TELState enum value.
           strategy: A strategy dict, from lib.tel_strategy.load_strategy. Required.
         """
         self.base = base
-        self.uid = uid
+        self.name = name
+        self.uid = uuid4().int
         self.type = tel_type
         self.state = initial_state
         assert strategy is not None 

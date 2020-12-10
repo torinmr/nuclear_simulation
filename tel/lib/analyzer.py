@@ -1,8 +1,31 @@
+from abc import ABC, abstractmethod
 from datetime import timedelta
 from numpy import random
 
-from lib.observation import Observation, Analyzer, observation_stats, analysis_stats
+from lib.intelligence_types import Observation, observation_stats, analysis_stats
 from lib.time import format_time
+
+class Analyzer(ABC):
+    def __init__(self):
+        super().__init__()
+    
+    @abstractmethod
+    def analyze(self, observations, t):
+        """Analyze observations emitted by an Observer.
+        
+        Args:
+          observations: A sequence of observations (positive and negative).
+          t: Current simulation time.
+        Returns:
+          A collection of Observations representing what the analysis process believes
+          to be TELs. Can still contain negative examples to represent false positives
+          in the analysis process.
+        
+          The returned observations do not have to be a subset of the input observations
+          - for example, they could be observations that arrived some time ago, if the
+          analysis process is not instantaneous.
+        """  
+        pass
 
 class ImageryAnalyzer(Analyzer):
     def __init__(self, name, ml_processing_time=timedelta(minutes=5),

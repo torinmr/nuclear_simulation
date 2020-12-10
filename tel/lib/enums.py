@@ -8,9 +8,12 @@ class TELState(Enum):
     IN_BASE = auto()
     ROAMING = auto()
 
-class TELType(Enum):
-    # TODO: Learn actual types of TELs.
-    BASIC = auto()
+class TELKind(Enum):
+    DF_31A = auto()
+    DF_31AG = auto()
+    DF_26 = auto()
+    DF_31 = auto()
+    DF_21AE = auto()
 
 class AlertLevel(Enum):
     PEACETIME = auto()
@@ -21,3 +24,11 @@ class DetectionMethod(Enum):
     INITIAL = auto()
     EO = auto()
     SAR = auto()
+    
+class TLOKind(Enum):
+    # A normal truck that could be mistaken for a TEL.
+    TRUCK = auto()
+    # A decoy intentionally made to look like a TEL.
+    DECOY = auto()
+    # A real TEL.
+    TEL = auto()

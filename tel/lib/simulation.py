@@ -18,7 +18,10 @@ class Simulation:
                  render_interval_mins=60,
                  output_folder='',
                  rng_seed=None,
-                 alert_level=AlertLevel.PEACETIME):
+                 alert_level=AlertLevel.PEACETIME,
+                 use_decoys=False,
+                 allowed_tel_kinds=None,
+                ):
         """Initialize the simulation.
         start_datetime: datetime object representing when the simulation starts.
           No timezone should be specified (assumed to be local time in China).
@@ -32,6 +35,10 @@ class Simulation:
         rng_seed: Optional integer. If provided, use a fixed seed which should make
           the simulation deterministic. If not provided use a random seed.
         alert_level: An AlertLevel enum value.
+        use_decoys: Whether to add decoy TLOs based on the 'decoys' column in the base 
+          config.
+        allowed_tel_kinds: Optional collection of TELKinds. If provided, only add these
+          TELs to the simulation, otherwise add all types.
         """
         random.seed(seed=rng_seed)
         self.event_queue = []
@@ -47,15 +54,21 @@ class Simulation:
         self.bases = load_bases(base_filename='data/tel_bases.csv',
                                 strategy_filename='data/tel_strategy.csv')
         self.tel_from_uid = {}
+        self.tlo_from_uid = {}
         for base in self.bases:
             for tel in base.tels:
                 self.tel_from_uid[tel.uid] = tel
+            for tlo in base.tlos:
+                self.tlo_from_uid[tlo.uid] = tlo
         
         self.intelligence = Intelligence()
         self.start()
         
     def tels(self):
         return self.tel_from_uid.values()
+    
+    def tlos(self):
+        return self.tlo_from_uid.values()
         
     def start(self):
         """Start each of the entities in the simulation (i.e. schedule their update events)."""
