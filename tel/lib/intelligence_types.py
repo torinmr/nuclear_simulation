@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING, Optional, List
 from uuid import uuid4
 
 from lib.enums import TLOKind, TELState, DetectionMethod
-from lib.tel_base import TELBase
+if TYPE_CHECKING:
+    from lib.tel_base import TELBase
 
 @dataclass(frozen=True)
 class TLO:   
@@ -26,7 +27,7 @@ class TLO:
     # region. When > 1,  this TLO does not have a unique ID.
     multiplicity: int = 1
         
-    def __init__(kind, uid=None, base=None, multiplicity=1):
+    def __init__(self, kind, uid=None, base=None, multiplicity=1):
         self.kind = kind
         if multiplicity == 1 and uid is None:
             self.uid = uuid4().int

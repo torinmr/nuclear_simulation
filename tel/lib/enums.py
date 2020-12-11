@@ -32,3 +32,7 @@ class TLOKind(Enum):
     DECOY = auto()
     # A real TEL.
     TEL = auto()
+    
+class TELStrategy(Enum):
+    CAUTIOUS = auto()
+    AGGRESSIVE = auto()

@@ -52,7 +52,7 @@ class Simulation:
         self.alert_level = alert_level
         
         self.bases = load_bases(base_filename='data/tel_bases.csv',
-                                strategy_filename='data/tel_strategy.csv')
+                                strategies_filename='data/tel_strategies.csv')
         self.tel_from_uid = {}
         self.tlo_from_uid = {}
         for base in self.bases:

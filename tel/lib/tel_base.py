@@ -1,11 +1,11 @@
 from collections import Counter
 import csv
 
-from lib.enums import TELState, TELType, TLOKind
+from lib.enums import TELState, TELKind, TLOKind
 from lib.intelligence_types import TLO
 from lib.location import Location
 from lib.tel import TEL
-from lib.tel_strategy import load_strategy
+from lib.tel_strategy import load_strategies
 
 class TELBase:
     """A home base out of which several TELs are stationed."""
@@ -44,7 +44,7 @@ class TELBase:
             ['  {} TELs in state {}'.format(state_counts[state], state.name)
              for state in TELState])
 
-def load_base(row, strategy, use_decoys, allowed_tel_kinds):
+def load_base(row, strategies, use_decoys, allowed_tel_kinds):
     name = row['name']
     lat = float(row['latitude'])
     lon = float(row['longitude'])
@@ -59,21 +59,20 @@ def load_base(row, strategy, use_decoys, allowed_tel_kinds):
             continue
         num_tels = int(row[tel_kind.name])
         for _ in range(num_tels):
-            base.add_tel(tel_kind=tel_kind, strategy=strategy)
+            base.add_tel(tel_kind=tel_kind, strategies=strategies)
     
     if use_decoys:
         base.tlos.append(TLO(TLOKind.DECOY, base=base, multiplicity=int(row['decoys'])))
     base.tlos.append(TLO(TLOKind.TRUCK, base=base, multiplicity=int(row['trucks']))) 
     return base
 
-def load_bases(base_filename=None, strategy_filename=None,
+def load_bases(base_filename=None, strategies_filename=None,
                use_decoys=False, allowed_tel_kinds=None):
     """Args:
       
     """
-    #
-    strategy = load_strategy(strategy_filename)
+    strategies = load_strategies(strategies_filename)
     with open(base_filename) as csvfile:
         reader = csv.DictReader(csvfile)
-        return [load_base(row, strategy, use_decoys, allowed_tel_kinds) for row in reader]
+        return [load_base(row, strategies, use_decoys, allowed_tel_kinds) for row in reader]
     
