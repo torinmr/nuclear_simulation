@@ -14,10 +14,6 @@ class TELKind(Enum):
     DF_26 = auto()
     DF_31 = auto()
     DF_21AE = auto()
-
-class AlertLevel(Enum):
-    PEACETIME = auto()
-    HIGH_ALERT = auto()
     
 class DetectionMethod(Enum):
     # Location is assumed known at the beginning of the simulation.

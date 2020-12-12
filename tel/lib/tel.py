@@ -15,11 +15,12 @@ class TEL:
     tunnel, etc).
     """
     
-    def __init__(self, base, name, tel_kind=None, is_decoy=False,
+    def __init__(self, c, base, name, tel_kind=None, is_decoy=False,
                  initial_state=TELState.IN_BASE, strategies=None):
         """Initialize a TEL object.
         
         Args:
+          c: Config object.
           base: The TELBase this TEL belongs to.
           name: Human readable name for this TEL.
           tel_kind: A TELKind enum value.
@@ -36,6 +37,7 @@ class TEL:
         self.state = initial_state
         assert strategies is not None 
         self.strategies = strategies
+        self.mated = random.random() < c.mating_fraction
         
     def to_tlo(self):
         kind = TLOKind.DECOY if self.is_decoy else TLOKind.TEL

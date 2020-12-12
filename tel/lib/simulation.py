@@ -4,7 +4,7 @@ from enum import Enum, auto
 from heapq import heappop, heappush
 from numpy import random
 
-from lib.enums import AlertLevel
+from lib.config import DefaultConfig
 from lib.intelligence import Intelligence
 from lib.renderer import Renderer
 from lib.tel_base import TELBase, load_bases
@@ -13,16 +13,14 @@ TZ = tz.gettz('Asia/Shanghai')
 
 class Simulation:
     def __init__(self,
+                 c=None,
                  start_datetime=datetime.fromisoformat('2021-01-20T12:00:00'),
                  runtime=None,
                  render_interval_mins=60,
                  output_folder='',
-                 rng_seed=None,
-                 alert_level=AlertLevel.PEACETIME,
-                 decoy_ratio=0,
-                 allowed_tel_kinds=None,
-                ):
+                 rng_seed=None):
         """Initialize the simulation.
+        c: An optional Config object (defaults to DefaultConfig).
         start_datetime: datetime object representing when the simulation starts.
           No timezone should be specified (assumed to be local time in China).
         runtime: timedelta indicating the maximum amount of time the simulation
@@ -34,11 +32,8 @@ class Simulation:
           no data will be saved.
         rng_seed: Optional integer. If provided, use a fixed seed which should make
           the simulation deterministic. If not provided use a random seed.
-        alert_level: An AlertLevel enum value.
-        decoy_ratio: Number of decoys per real TEL. Can be fractional, results are rounded.
-        allowed_tel_kinds: Optional collection of TELKinds. If provided, only add these
-          TELs to the simulation, otherwise add all types.
         """
+        self.c = c if c is not None else DefaultConfig()
         random.seed(seed=rng_seed)
         self.event_queue = []
         self.t = start_datetime.replace(tzinfo=TZ)
@@ -48,12 +43,8 @@ class Simulation:
         
         self.render_interval = timedelta(minutes=render_interval_mins)        
         self.renderer = Renderer(output_folder)
-        self.alert_level = alert_level
         
-        self.bases = load_bases(base_filename='data/tel_bases.csv',
-                                strategies_filename='data/tel_strategies.csv',
-                                decoy_ratio=decoy_ratio,
-                                allowed_tel_kinds=allowed_tel_kinds)
+        self.bases = load_bases(c)
         self.tel_from_uid = {}
         self.tlo_from_uid = {}
         for base in self.bases:
