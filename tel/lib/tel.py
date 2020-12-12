@@ -3,7 +3,8 @@ from enum import Enum, auto
 from numpy import random
 from uuid import uuid4
 
-from lib.enums import TELState, TELKind, TELStrategy
+from lib.enums import TELState, TLOKind, TELKind, TELStrategy
+from lib.intelligence_types import TLO
 
 class TEL:
     """A single Transporter-Erector-Launcher.
@@ -14,7 +15,7 @@ class TEL:
     tunnel, etc).
     """
     
-    def __init__(self, base, name, tel_kind=None,
+    def __init__(self, base, name, tel_kind=None, is_decoy=False,
                  initial_state=TELState.IN_BASE, strategies=None):
         """Initialize a TEL object.
         
@@ -22,6 +23,7 @@ class TEL:
           base: The TELBase this TEL belongs to.
           name: Human readable name for this TEL.
           tel_kind: A TELKind enum value.
+          is_decoy: Whether this TEL is a decoy.
           initial_state: A TELState enum value.
           strategies: A strategy dict - see tel_strategy.py. Required.
         """
@@ -30,9 +32,14 @@ class TEL:
         self.uid = uuid4().int
         assert tel_kind is not None
         self.kind = tel_kind
+        self.is_decoy = is_decoy
         self.state = initial_state
         assert strategies is not None 
         self.strategies = strategies
+        
+    def to_tlo(self):
+        kind = TLOKind.DECOY if self.is_decoy else TLOKind.TEL
+        return TLO(kind=kind, tel=self, uid=self.uid, base=self.base)
         
     def start(self, s):
         s.schedule_event_relative(lambda: self.update_state(s),
@@ -50,5 +57,6 @@ class TEL:
         self.state = next_state
         
     def status(self):
-        return '{} TEL associated with {} Base. uid: {}, current state: {}'.format(
-            self.kind.name, self.base.name, self.uid, self.state.name)
+        return '{}{} TEL associated with {} Base. uid: {}, current state: {}'.format(
+            '(decoy) ' if self.is_decoy else '', self.kind.name,
+            self.base.name, self.uid, self.state.name)

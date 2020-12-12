@@ -19,7 +19,7 @@ class Simulation:
                  output_folder='',
                  rng_seed=None,
                  alert_level=AlertLevel.PEACETIME,
-                 use_decoys=False,
+                 decoy_ratio=0,
                  allowed_tel_kinds=None,
                 ):
         """Initialize the simulation.
@@ -35,8 +35,7 @@ class Simulation:
         rng_seed: Optional integer. If provided, use a fixed seed which should make
           the simulation deterministic. If not provided use a random seed.
         alert_level: An AlertLevel enum value.
-        use_decoys: Whether to add decoy TLOs based on the 'decoys' column in the base 
-          config.
+        decoy_ratio: Number of decoys per real TEL. Can be fractional, results are rounded.
         allowed_tel_kinds: Optional collection of TELKinds. If provided, only add these
           TELs to the simulation, otherwise add all types.
         """
@@ -52,7 +51,9 @@ class Simulation:
         self.alert_level = alert_level
         
         self.bases = load_bases(base_filename='data/tel_bases.csv',
-                                strategies_filename='data/tel_strategies.csv')
+                                strategies_filename='data/tel_strategies.csv',
+                                decoy_ratio=decoy_ratio,
+                                allowed_tel_kinds=allowed_tel_kinds)
         self.tel_from_uid = {}
         self.tlo_from_uid = {}
         for base in self.bases:

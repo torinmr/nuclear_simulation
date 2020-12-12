@@ -19,7 +19,8 @@ class Intelligence:
     def start(self, s):
         s.schedule_event_relative(lambda: self.process(s), timedelta(),
                                   repeat_interval=timedelta(minutes=1))
-        self.tracker.start(self, s)
+        self.perfect_tracker.start(s)
+        self.realistic_tracker.start(s)
     
     def process(self, s):
         all_observations = []
@@ -32,7 +33,7 @@ class Intelligence:
         analyzed_sar_observations = self.sar_analyzer.analyze(raw_sar_observations, s.t)
         all_observations += analyzed_sar_observations
         
-        perfect_tracker.assign_observations(all_observations)
-        realistic_tracker.assign_observations(all_observations)
+        self.perfect_tracker.assign_observations(all_observations)
+        self.realistic_tracker.assign_observations(all_observations)
 
         

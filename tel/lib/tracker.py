@@ -10,7 +10,7 @@ class Tracker:
         
     def start(self, s):
         for tel in s.tels():
-            self.files[tel.uid] = File(tel.uid)
+            self.files[tel.uid] = File(uid=tel.uid, tel=tel)
                
     @abstractmethod
     def assign_observations(self, observations):

@@ -14,7 +14,7 @@ class TELBase:
         self.location = location
         assert cloud_cover
         self.cloud_cover = cloud_cover
-        self.tel_count_by_type = Counter()
+        self.tel_count_by_kind = Counter()
         self.tels = []
         self.tlos = []
         
@@ -22,10 +22,10 @@ class TELBase:
         """Construct a TEL and add it to this base.
         Forwards all keyword args to the TEL constructor."""
         tel = TEL(self, 'tmp', **kwargs)
-        tel.name = '{}_{}_{}'.format(self.name, tel.type.name, self.tel_count_by_type[tel.type])
-        self.tel_count_by_type[tel.type] += 1
+        tel.name = '{}_{}_{}'.format(self.name, tel.kind.name, self.tel_count_by_kind[tel.kind])
+        self.tel_count_by_kind[tel.kind] += 1
         self.tels.append(tel)
-        self.tlos.append(TLO(TLOKind.TEL, uid_tel.uid, base=self))
+        self.tlos.append(tel.to_tlo())
         
     def start(self, s):
         for tel in self.tels:
@@ -44,7 +44,7 @@ class TELBase:
             ['  {} TELs in state {}'.format(state_counts[state], state.name)
              for state in TELState])
 
-def load_base(row, strategies, use_decoys, allowed_tel_kinds):
+def load_base(row, strategies, decoy_ratio, allowed_tel_kinds):
     name = row['name']
     lat = float(row['latitude'])
     lon = float(row['longitude'])
@@ -57,22 +57,25 @@ def load_base(row, strategies, use_decoys, allowed_tel_kinds):
         if tel_kind.name not in row:
             print("No column for {} in TEL base csv file".format(tel_kind.name))
             continue
+            
         num_tels = int(row[tel_kind.name])
         for _ in range(num_tels):
             base.add_tel(tel_kind=tel_kind, strategies=strategies)
-    
-    if use_decoys:
-        base.tlos.append(TLO(TLOKind.DECOY, base=base, multiplicity=int(row['decoys'])))
+            
+        num_decoys = int(decoy_ratio * num_tels)
+        for _ in range(num_decoys):
+            base.add_tel(tel_kind=tel_kind, strategies=strategies, is_decoy=True)
+
     base.tlos.append(TLO(TLOKind.TRUCK, base=base, multiplicity=int(row['trucks']))) 
     return base
 
 def load_bases(base_filename=None, strategies_filename=None,
-               use_decoys=False, allowed_tel_kinds=None):
+               decoy_ratio=0, allowed_tel_kinds=None):
     """Args:
       
     """
     strategies = load_strategies(strategies_filename)
     with open(base_filename) as csvfile:
         reader = csv.DictReader(csvfile)
-        return [load_base(row, strategies, use_decoys, allowed_tel_kinds) for row in reader]
+        return [load_base(row, strategies, decoy_ratio, allowed_tel_kinds) for row in reader]
     

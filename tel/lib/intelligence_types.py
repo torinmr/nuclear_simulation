@@ -5,17 +5,23 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Optional, List
 from uuid import uuid4
 
+from numpy import random
+
 from lib.enums import TLOKind, TELState, DetectionMethod
 if TYPE_CHECKING:
     from lib.tel_base import TELBase
+    from lib.tel import TEL
 
 @dataclass(frozen=True)
 class TLO:   
     kind: TLOKind
         
     # A unique identifier. If kind=TEL, is equal to the TEL’s unique ID.
-    # Only set for TRUCK/DECOY objects if they are being tracked by the US.
+    # Only set for TRUCK objects if they are being tracked by the US.
     uid: Optional[int] = None
+      
+    # Convenience pointer to the corresponding TEL object, if applicable.
+    tel: Optional[TEL] = None
     
     # Pointer to the base the TLO is associated with. Each base is populated
     # with a number of TLOs based on how many trucks etc. are in that area
@@ -27,14 +33,26 @@ class TLO:
     # region. When > 1,  this TLO does not have a unique ID.
     multiplicity: int = 1
         
-    def __init__(self, kind, uid=None, base=None, multiplicity=1):
-        self.kind = kind
+    # Hacky implementation using object.__setattr__() is necessary, because
+    # frozen=True prevents setting attributes normally.
+    def __init__(self, kind, tel=None, uid=None, base=None, multiplicity=1):
+        object.__setattr__(self, 'kind', kind)
+        object.__setattr__(self, 'tel', tel)
         if multiplicity == 1 and uid is None:
-            self.uid = uuid4().int
+            object.__setattr__(self, 'uid', uuid4().int)
         else:
-            self.uid = uid   
-        self.base = base,
-        self.multiplicity = multiplicity
+            object.__setattr__(self, 'uid', uid)   
+        object.__setattr__(self, 'base', base)
+        object.__setattr__(self, 'multiplicity', multiplicity)
+        
+    def observe(self, t, method, multiplicity):
+        """Create an Observation corresponding to this TLO."""
+        if self.kind == TLOKind.TEL:
+            state = self.tel.state
+        else:
+            state = None
+        return Observation(t=t, method=method, uid=self.uid,
+                           tlo=self, state=state, multiplicity=multiplicity)
 
 # Observations are immutable, and are ordered by their associated time. So,
 # a list of observations can be put in chronological order by sorting.
@@ -48,16 +66,31 @@ class Observation:
     # If None, then this observation does not correspond to a TLO.
     uid: Optional[int] = None
         
+    # Convenience pointer to the corresponding TLO object, if applicable.
+    tlo: Optional[TLO] = None
+        
     # State of the observed TEL, if applicable.
     state: Optional[TELState] = None
     
     # How many individual observations this Observation object corresponds to.
     multiplicity: int = 1
+        
+    def sample(self, p):
+        """Return a copy of this observation, with multiplicity adjusted according to p, or None."""
+        multiplicity = random.binomial(n=self.multiplicity, p=p)
+        if multiplicity > 0:
+            return Observation(t=self.t, method=self.method, uid=self.uid, tlo=self.tlo, state=self.state,
+                       multiplicity=multiplicity)
+        else:
+            return None
 
 @dataclass
 class File:
     # Unique ID of the TEL this file corresponds to.
     uid: int
+        
+    # Convenience pointer to the TEL this file corresponds to.
+    tel: TLO
         
     # List of observations assigned to this file.
     obs: List[Observation] = field(default_factory=list)
@@ -68,16 +101,5 @@ class File:
 def observation_stats(obs):
     """Print stats on a collection of observations."""
     return "{} TELs observed, {} non-TEL observations".format(
-        sum([o.multiplicity for o in obs if o.uid]),
-        sum([o.multiplicity for o in obs if not o.uid]))
-
-def analysis_stats(obs):
-    """Print stats on a collection of observations after analysis"""
-    tp = sum([o.multiplicity for o in obs if o.uid])
-    otp = sum([o.original_multiplicity for o in obs if o.uid])
-    tpr = tp/otp if otp else 0
-    fp = sum([o.multiplicity for o in obs if not o.uid])
-    ofp = sum([o.original_multiplicity for o in obs if not o.uid])
-    fpr = fp/ofp if ofp else 0
-    return "{}/{} ({:.2%}) TELs observed, {}/{} ({:.2%}) non-TEL observations".format(
-        tp, otp, tpr, fp, ofp, fpr)
+        sum([o.multiplicity for o in obs if o.tlo and o.tlo.kind == TLOKind.TEL]),
+        sum([o.multiplicity for o in obs if o.tlo is None or o.tlo.kind != TLOKind.TEL]))

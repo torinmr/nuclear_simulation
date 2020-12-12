@@ -10,9 +10,9 @@ class Renderer:
     def __init__(self, save_folder):
         self.save_folder = save_folder
         self.last_render_time = None
-        self.times = []
-        self.fp_rate = []
-        self.avg_age = []
+        # self.times = []
+        # self.fp_rate = []
+        # self.avg_age = []
         
         
     def start(self, s):
@@ -24,10 +24,11 @@ class Renderer:
                                   timedelta(minutes=1), timedelta(minutes=1))
         
     def collect_stats(self, s):
-        avg_age, fp_rate = s.intelligence.stats(s)
-        self.times.append(s.t)
-        self.fp_rate.append(fp_rate)
-        self.avg_age.append(avg_age.seconds / 60)
+        pass
+        #    avg_age, fp_rate = s.intelligence.stats(s)
+        #    self.times.append(s.t)
+        #    self.fp_rate.append(fp_rate)
+        #    self.avg_age.append(avg_age.seconds / 60)
         
     def render(self, s):
         print()
@@ -35,16 +36,18 @@ class Renderer:
         for base in s.bases:
             print(base.status())
             print(base.tel_state_summary())
-        s.intelligence.print_stats(s)
+        # s.intelligence.print_stats(s)
         print()
         self.last_render_time = s.t
         
     def final_summary(self):
-        plt.style.use('seaborn-whitegrid')
-        fig = plt.figure()
-        ax = plt.axes()
+        pass
+    
+        # plt.style.use('seaborn-whitegrid')
+        # fig = plt.figure()
+        # ax = plt.axes()
         
-        x = matplotlib.dates.date2num(self.times)
-        ax.plot(x, self.fp_rate)
-        ax.plot(x, self.avg_age)
+        # x = matplotlib.dates.date2num(self.times)
+        # ax.plot(x, self.fp_rate)
+        # ax.plot(x, self.avg_age)
         
