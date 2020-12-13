@@ -45,22 +45,18 @@ class Simulation:
         self.renderer = Renderer(output_folder)
         
         self.bases = load_bases(c)
-        self.tel_from_uid = {}
-        self.tlo_from_uid = {}
-        for base in self.bases:
-            for tel in base.tels:
-                self.tel_from_uid[tel.uid] = tel
-            for tlo in base.tlos:
-                self.tlo_from_uid[tlo.uid] = tlo
-        
         self.intelligence = Intelligence(self.c)
         self.start()
         
     def tels(self):
-        return self.tel_from_uid.values()
+        for base in self.bases:
+            for tel in base.tels:
+                yield tel
     
     def tlos(self):
-        return self.tlo_from_uid.values()
+        for base in self.bases:
+            for tlo in base.tlos:
+                yield tlo
         
     def start(self):
         """Start each of the entities in the simulation (i.e. schedule their update events)."""

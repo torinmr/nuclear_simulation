@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from numpy import random
 
-from lib.enums import DetectionMethod
+from lib.enums import DetectionMethod, TLOKind, TELState
 from lib.intelligence_types import Observation
 
 class Observer(ABC):
@@ -22,22 +22,42 @@ class Observer(ABC):
           to satellite images containing no TELs, for example).
         """  
         pass
-    
+
+def truck_utilization_fraction(tlo, s, c):
+    if tlo.base.location.is_night(s.t):
+        return c.nighttime_truck_utilization
+    elif tlo.base.location.is_day(s.t):
+        return c.daytime_truck_utilization
+    else:
+        print("Warning: Unknown time of day.")
+        return 0
+
 class EOObserver(Observer):
     def __init__(self, c):
         super().__init__(c)
     
-    def observe(self, s):       
-        # TODO(Ben): Is there any natural delay (> 1 minute) in collecting
-        #   satellite images and transmitting them to the US for analysis?
+    def observe(self, s):
         observations = []
         num_observations = 0
-        # TODO: Take account of state, not all trucks being on the road, etc.
         for tlo in s.tlos():
             base = tlo.base
+            p_visible = 1
+            
+            # EOs can't see at night.
             if base.location.is_night(s.t):
-                continue
-            p_visible = 1 - base.cloud_cover
+                p_visible *= 0
+                
+            # Not all trucks are on the road at the same time.
+            if tlo.kind == TLOKind.TRUCK:
+                p_visible *= truck_utilization_fraction(tlo, s, self.c)
+
+            # TELs and decoys in physical shelters can't be observed by satellites.
+            if tlo.tel and tlo.tel.state in {TELState.IN_BASE, TELState.SHELTERING}:
+                p_visible *= 0
+            
+            # Remaining TELs may be obscured by clouds.
+            p_visible *= (1 - base.cloud_cover)
+
             num_observed = random.binomial(n=tlo.multiplicity, p=p_visible)
             if num_observed > 0:
                 observations.append(tlo.observe(s.t, DetectionMethod.EO, num_observed))

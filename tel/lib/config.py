@@ -31,6 +31,12 @@ class DefaultConfig:
     # Ratio of secret decoys to real TELs. These represent special decoys only deployed in a crisis, so
     # the US is worse at distinguishing them.
     secret_decoy_ratio: float = 0
+    
+    # Assume each truck drives ~40 hours/week, or ~6 hours/day. We'll assume that 1/3 of driving occurs at
+    # night, and the remaining 2/3 during the day, and that both night and day are equally long. So, each
+    # truck drives 2/12 nighttime hours and 4/12 daytime hours on average.
+    daytime_truck_utilization: float = 1/3
+    nighttime_truck_utilization: float = 1/6
         
     # Files containing external data.
     bases_filename: str = 'data/tel_bases.csv'
@@ -51,7 +57,7 @@ class DefaultConfig:
 
     human_positive_rates: Dict[TLOKind, float] = field(default_factory=lambda: {
         TLOKind.TEL:   .95,
-        TLOKind.TRUCK: .01,
+        TLOKind.TRUCK: .1,
         TLOKind.DECOY: .95*.5,
         TLOKind.SECRET_DECOY: .95*.9,
     })

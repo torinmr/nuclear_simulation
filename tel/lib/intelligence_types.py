@@ -47,10 +47,7 @@ class TLO:
         
     def observe(self, t, method, multiplicity):
         """Create an Observation corresponding to this TLO."""
-        if self.kind == TLOKind.TEL or self.kind == TLOKind.DECOY or self.kind == TLOKind.SECRET_DECOY:
-            state = self.tel.state
-        else:
-            state = None
+        state = self.tel.state if self.tel is not None else None
         return Observation(t=t, method=method, uid=self.uid,
                            state=state, tlo_kind=self.kind, multiplicity=multiplicity)
 
