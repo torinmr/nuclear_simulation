@@ -38,7 +38,7 @@ def analysis_stats(start_obs, ml_obs, final_obs):
     fp = sum([o.multiplicity for o in final_obs if o.tlo is None or o.tlo.kind != TLOKind.TEL])
     ofp = sum([o.multiplicity for o in start_obs if o.tlo is None or o.tlo.kind != TLOKind.TEL])
     fpr = fp/ofp if ofp else 0
-    return "{}/{} ({:.2%}) TELs observed, {}/{} ({:.2%}) non-TEL observations".format(
+    return "  {}/{} ({:.2%}) TELs observed, {}/{} ({:.2%}) non-TEL observations".format(
         tp, otp, tpr, fp, ofp, fpr)
     
 class ImageryAnalyzer(Analyzer):

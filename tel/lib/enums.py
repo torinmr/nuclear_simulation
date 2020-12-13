@@ -5,8 +5,14 @@ class TimeOfDay(Enum):
     NIGHT = auto()
     
 class TELState(Enum):
-    IN_BASE = auto()
-    ROAMING = auto()
+    IN_BASE = auto()        # TEL is parked in a base (not visible to satellites)
+    LEAVING_BASE = auto()   # TEL is preparing to leave (visible to satellites)
+    ROAMING = auto()        # TEL is roaming
+    ARRIVING_BASE = auto()  # TEL is arriving at a base (visible to satellites)
+    REFUELING = auto()      # TEL is refueling and performing maintenance (visible to satellites).
+                            #   Only applicable during high alert (TELs refuel at base otherwise).
+    SHELTERING = auto()     # TEL is sheltering under a thick structure away from base. Only
+                            #   applicable during high alert.
 
 class TELKind(Enum):
     DF_31A = auto()
@@ -28,7 +34,3 @@ class TLOKind(Enum):
     DECOY = auto()
     # A real TEL.
     TEL = auto()
-    
-class TELStrategy(Enum):
-    CAUTIOUS = auto()
-    AGGRESSIVE = auto()

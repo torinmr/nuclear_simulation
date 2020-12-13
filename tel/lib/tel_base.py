@@ -5,7 +5,6 @@ from lib.enums import TELState, TELKind, TLOKind
 from lib.intelligence_types import TLO
 from lib.location import Location
 from lib.tel import TEL
-from lib.tel_strategy import load_strategies
 
 class TELBase:
     """A home base out of which several TELs are stationed."""
@@ -21,8 +20,10 @@ class TELBase:
     def add_tel(self, c, **kwargs):
         """Construct a TEL and add it to this base.
         Forwards all keyword args to the TEL constructor."""
-        tel = TEL(c, self, 'tmp', **kwargs)
-        tel.name = '{}_{}_{}'.format(self.name, tel.kind.name, self.tel_count_by_kind[tel.kind])
+        kind = kwargs["tel_kind"]
+        name = '{}_{}_{}'.format(self.name, kind.name, self.tel_count_by_kind[kind])
+        tel = TEL(c, self, name, **kwargs)
+        
         self.tel_count_by_kind[tel.kind] += 1
         self.tels.append(tel)
         self.tlos.append(tel.to_tlo())
@@ -44,7 +45,7 @@ class TELBase:
             ['  {} TELs in state {}'.format(state_counts[state], state.name)
              for state in TELState])
 
-def load_base(c, row, strategies):
+def load_base(c, row):
     name = row['name']
     lat = float(row['latitude'])
     lon = float(row['longitude'])
@@ -60,21 +61,26 @@ def load_base(c, row, strategies):
             
         num_tels = int(row[tel_kind.name])
         for _ in range(num_tels):
-            base.add_tel(c, tel_kind=tel_kind, strategies=strategies)
+            base.add_tel(c, tel_kind=tel_kind)
             
         num_decoys = int(c.decoy_ratio * num_tels)
         for _ in range(num_decoys):
-            base.add_tel(c, tel_kind=tel_kind, strategies=strategies, is_decoy=True)
+            base.add_tel(c, tel_kind=tel_kind, is_decoy=True)
 
     base.tlos.append(TLO(TLOKind.TRUCK, base=base, multiplicity=int(row['trucks']))) 
-    return base
+    
+    if len(base.tels) > 0:
+        return base
+    else:
+        return None
 
 def load_bases(c):
-    """Args:
-      
-    """
-    strategies = load_strategies(c.strategies_filename)
     with open(c.bases_filename) as csvfile:
         reader = csv.DictReader(csvfile)
-        return [load_base(c, row, strategies) for row in reader]
+        bases = []
+        for row in reader:
+            base = load_base(c, row)
+            if base is not None:
+                bases.append(base)
+        return bases
     
