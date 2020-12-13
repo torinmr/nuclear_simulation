@@ -8,13 +8,13 @@ from lib.tracker import PerfectTracker, RealisticTracker
 
 class Intelligence:
     """Class representing US intelligence efforts to locate TELs."""
-    def __init__(self):
-        self.eo_observer = EOObserver()
-        self.eo_analyzer = ImageryAnalyzer("EO")
-        self.sar_observer = SARObserver()
-        self.sar_analyzer = ImageryAnalyzer("SAR")
-        self.perfect_tracker = PerfectTracker()
-        self.realistic_tracker = RealisticTracker()
+    def __init__(self, c):
+        self.eo_observer = EOObserver(c)
+        self.eo_analyzer = ImageryAnalyzer(c, "EO")
+        self.sar_observer = SARObserver(c)
+        self.sar_analyzer = ImageryAnalyzer(c, "SAR")
+        self.perfect_tracker = PerfectTracker(c)
+        self.realistic_tracker = RealisticTracker(c)
     
     def start(self, s):
         s.schedule_event_relative(lambda: self.process(s), timedelta(),

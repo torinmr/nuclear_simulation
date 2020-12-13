@@ -19,14 +19,19 @@ class TELBase:
         
     def add_tel(self, c, **kwargs):
         """Construct a TEL and add it to this base.
-        Forwards all keyword args to the TEL constructor."""
-        kind = kwargs["tel_kind"]
-        name = '{}_{}_{}'.format(self.name, kind.name, self.tel_count_by_kind[kind])
+        Forwards all keyword args to the TEL constructor.
+        
+        Returns: The TEL which was added.
+        """
+        tel_kind = kwargs["tel_kind"]
+        tlo_kind = kwargs["tlo_kind"]
+        name = '{}_{}_{}_{}'.format(self.name, tlo_kind.name, tel_kind.name,
+                                    self.tel_count_by_kind[(tlo_kind, tel_kind)])
         tel = TEL(c, self, name, **kwargs)
         
-        self.tel_count_by_kind[tel.kind] += 1
+        self.tel_count_by_kind[(tlo_kind, tel_kind)] += 1
         self.tels.append(tel)
-        self.tlos.append(tel.to_tlo())
+        return tel
         
     def start(self, s):
         for tel in self.tels:
@@ -61,13 +66,24 @@ def load_base(c, row):
             
         num_tels = int(row[tel_kind.name])
         for _ in range(num_tels):
-            base.add_tel(c, tel_kind=tel_kind)
+            tel = base.add_tel(c, tel_kind=tel_kind, tlo_kind=TLOKind.TEL)
+            tlo = TLO(kind=TLOKind.TEL, tel=tel, uid=tel.uid, base=base)
+            base.tlos.append(tlo)
             
         num_decoys = int(c.decoy_ratio * num_tels)
         for _ in range(num_decoys):
-            base.add_tel(c, tel_kind=tel_kind, is_decoy=True)
+            tel = base.add_tel(c, tel_kind=tel_kind, tlo_kind=TLOKind.DECOY)
+            tlo = TLO(kind=TLOKind.DECOY, tel=tel, uid=tel.uid, base=base)
+            base.tlos.append(tlo)
+            
+        num_secret_decoys = int(c.secret_decoy_ratio * num_tels)
+        for _ in range(num_secret_decoys):
+            tel = base.add_tel(c, tel_kind=tel_kind, tlo_kind=TLOKind.SECRET_DECOY)
+            tlo = TLO(kind=TLOKind.SECRET_DECOY, tel=tel, uid=tel.uid, base=base)
+            base.tlos.append(tlo)
 
-    base.tlos.append(TLO(TLOKind.TRUCK, base=base, multiplicity=int(row['trucks']))) 
+    trucks = TLO(TLOKind.TRUCK, base=base, multiplicity=int(row['trucks']))
+    base.tlos.append(trucks)
     
     if len(base.tels) > 0:
         return base

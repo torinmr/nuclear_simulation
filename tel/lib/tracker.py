@@ -4,8 +4,9 @@ from lib.enums import TLOKind
 from lib.intelligence_types import File
        
 class Tracker:
-    def __init__(self):
+    def __init__(self, c):
         super().__init__()
+        self.c = c
         self.files = {}
         
     def start(self, s):
@@ -18,8 +19,8 @@ class Tracker:
         pass
         
 class PerfectTracker(Tracker):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, c):
+        super().__init__(c)
 
     def assign_observations(self, observations):
         for obs in observations:
@@ -27,8 +28,8 @@ class PerfectTracker(Tracker):
                 self.files[obs.uid].add_observation(obs)
     
 class RealisticTracker(Tracker):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, c):
+        super().__init__(c)
 
     def assign_observations(self, observations):
         pass

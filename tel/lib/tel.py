@@ -16,24 +16,23 @@ class TEL:
     tunnel, etc).
     """
     
-    def __init__(self, c, base, name, uid=None, tel_kind=None, is_decoy=False):
+    def __init__(self, c, base, name, tel_kind=None, tlo_kind=None, is_decoy=False):
         """Initialize a TEL object.
         
         Args:
           c: Config object.
           base: The TELBase this TEL belongs to.
           name: Human readable name for this TEL.
-          uid: UUID. One will be generated if None.
           tel_kind: A TELKind enum value.
-          is_decoy: Whether this TEL is a decoy.
+          tlo_kind: A TLOKind enum (indicating whether this is a TEL or a decoy).
         """
         self.c = c
         self.base = base
         self.name = name
-        self.uid = uuid4().int if uid is None else uid
+        self.uid = uuid4().int
         assert tel_kind is not None
         self.kind = tel_kind
-        self.is_decoy = is_decoy
+        self.tlo_kind = tlo_kind
 
         # For the schedule stored in the TEL object, we use the format (offset, state),
         # where offsets are relative to the loop time and shifted randomly for each TEL.
@@ -54,10 +53,6 @@ class TEL:
         
         self.mated = random.random() < c.mating_fraction
         
-    def to_tlo(self):
-        kind = TLOKind.DECOY if self.is_decoy else TLOKind.TEL
-        return TLO(kind=kind, tel=self, uid=self.uid, base=self.base)
-        
     def start(self, s):
         if self.offset_schedule[0][0] == timedelta():
             self.update_state(s, self.offset_schedule[0][1])
@@ -75,6 +70,6 @@ class TEL:
         self.emcon = random.random() < self.c.emcon_fraction
                 
     def status(self):
-        return '{}{} TEL associated with {} Base. uid: {}, current state: {}'.format(
-            '(decoy) ' if self.is_decoy else '', self.kind.name,
+        return '{} {} associated with {} Base. uid: {}, current state: {}'.format(
+            self.kind.name, self.tlo_kind.name,
             self.base.name, self.uid, self.state.name)

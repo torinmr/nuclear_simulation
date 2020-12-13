@@ -6,7 +6,8 @@ from lib.intelligence_types import Observation
 from lib.time import format_time
 
 class Analyzer(ABC):
-    def __init__(self):
+    def __init__(self, c):
+        self.c = c
         super().__init__()
     
     @abstractmethod
@@ -32,26 +33,19 @@ def timing_stats(start_t, ml_t, final_t):
         format_time(start_t), format_time(ml_t), format_time(final_t))
 
 def analysis_stats(start_obs, ml_obs, final_obs):
-    tp = sum([o.multiplicity for o in final_obs if o.tlo and o.tlo.kind == TLOKind.TEL])
-    otp = sum([o.multiplicity for o in start_obs if o.tlo and o.tlo.kind == TLOKind.TEL])
-    tpr = tp/otp if otp else 0
-    fp = sum([o.multiplicity for o in final_obs if o.tlo is None or o.tlo.kind != TLOKind.TEL])
-    ofp = sum([o.multiplicity for o in start_obs if o.tlo is None or o.tlo.kind != TLOKind.TEL])
-    fpr = fp/ofp if ofp else 0
-    return "  {}/{} ({:.2%}) TELs observed, {}/{} ({:.2%}) non-TEL observations".format(
-        tp, otp, tpr, fp, ofp, fpr)
+    lines = ["  Positive rates per TELKind:"]
+    for kind in TLOKind: 
+        p = sum([o.multiplicity for o in final_obs if o.tlo_kind == kind])
+        op = sum([o.multiplicity for o in start_obs if o.tlo_kind == kind])
+        pr = p/op if op else 0
+        lines.append("    {}: {}/{} ({:.2%})".format(kind.name, p, op, pr))
+    return "\n".join(lines)
     
 class ImageryAnalyzer(Analyzer):
-    def __init__(self, name, ml_processing_duration=timedelta(minutes=5),
-                 ml_fp=.00145, ml_fn=.05, human_fp=.0005, human_fn=.05,
-                 human_examples_per_minute=7800):
+    def __init__(self, c, name):
+        super().__init__(c)
         self.name = name
-        self.ml_processing_duration = timedelta(minutes=5)
-        self.ml_fp = ml_fp
-        self.ml_fn = ml_fn
-        self.human_fp = human_fp
-        self.human_fn = human_fn
-        self.human_examples_per_minute = human_examples_per_minute
+
         # (start_t, start_obs), representing data not yet processed.
         self.ml_processing = None
         # (start_t, start_obs, ml_t, ml_obs), observations finished processing by ML, not yet started by humans.
@@ -60,26 +54,26 @@ class ImageryAnalyzer(Analyzer):
         self.human_processing = None
         # Time when latest batch of human processing started. Only set if self.human_processing is not None.
         self.human_processing_start_t = None
-        super().__init__()
         
-    def process(self, observations, fp=0, fn=0):
+    def process(self, observations, p_from_kind, non_tlo_positive_rate):
         sampled_observations = []
         for obs in observations:
-            # TODO: Update probabilities based on kind of TLO.
-            if obs.tlo and obs.tlo.kind == TLOKind.TEL:
-                p = 1 - fn
+            if obs.tlo_kind is None:
+                p = non_tlo_positive_rate
             else:
-                p = fp
+                p = p_from_kind[obs.tlo_kind]
+
             sampled_obs = obs.sample(p)
             if sampled_obs is not None:
                 sampled_observations.append(sampled_obs)
         return sampled_observations
         
     def human_process(self, observations):
-        return self.process(observations, fp=self.human_fp, fn=self.human_fn)
+        return self.process(observations, self.c.human_positive_rates, 0)
     
     def ml_process(self, observations):
-        return self.process(observations, fp=self.ml_fp, fn=self.ml_fn)
+        return self.process(observations, self.c.ml_positive_rates,
+                            self.c.ml_non_tlo_positive_rate)
     
     def analyze(self, observations, t):
         ret = []
@@ -88,7 +82,7 @@ class ImageryAnalyzer(Analyzer):
             start_t, start_obs, ml_t, ml_obs = self.human_processing
             num_observations = sum([o.multiplicity for o in ml_obs])
             elapsed_minutes = (t - self.human_processing_start_t).seconds / 60
-            if elapsed_minutes * self.human_examples_per_minute >= num_observations:
+            if elapsed_minutes * self.c.human_examples_per_minute >= num_observations:
                 final_obs = self.human_process(ml_obs)
                 print(timing_stats(start_t, ml_t, t))
                 print(analysis_stats(start_obs, ml_obs, final_obs))
@@ -99,7 +93,7 @@ class ImageryAnalyzer(Analyzer):
             start_t, start_obs = self.ml_processing
             # This could alternatively be done by assuming a
             # "ml_example_per_minute" value.
-            if t - start_t >= self.ml_processing_duration:
+            if t - start_t >= self.c.ml_processing_duration:
                 ml_obs = self.ml_process(start_obs)
                 self.waiting_for_human_processing = (start_t, start_obs, t, ml_obs)
                 self.ml_processing = None

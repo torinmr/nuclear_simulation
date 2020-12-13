@@ -5,7 +5,8 @@ from lib.enums import DetectionMethod
 from lib.intelligence_types import Observation
 
 class Observer(ABC):
-    def __init__(self):
+    def __init__(self, c):
+        self.c = c
         super().__init__()
     
     @abstractmethod
@@ -23,14 +24,15 @@ class Observer(ABC):
         pass
     
 class EOObserver(Observer):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, c):
+        super().__init__(c)
     
     def observe(self, s):       
         # TODO(Ben): Is there any natural delay (> 1 minute) in collecting
         #   satellite images and transmitting them to the US for analysis?
         observations = []
         num_observations = 0
+        # TODO: Take account of state, not all trucks being on the road, etc.
         for tlo in s.tlos():
             base = tlo.base
             if base.location.is_night(s.t):
@@ -41,14 +43,14 @@ class EOObserver(Observer):
                 observations.append(tlo.observe(s.t, DetectionMethod.EO, num_observed))
                 num_observations += num_observed
 
-        non_tlo_observations = 20_000_000 - num_observations
+        non_tlo_observations = self.c.total_eo_tiles - num_observations
         observations.append(Observation(t=s.t, method=DetectionMethod.EO,
                                         multiplicity=non_tlo_observations))
         return observations
 
 class SARObserver(Observer):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, c):
+        super().__init__(c)
     
     def observe(self, s):
         return []

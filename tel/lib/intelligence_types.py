@@ -47,12 +47,12 @@ class TLO:
         
     def observe(self, t, method, multiplicity):
         """Create an Observation corresponding to this TLO."""
-        if self.kind == TLOKind.TEL:
+        if self.kind == TLOKind.TEL or self.kind == TLOKind.DECOY or self.kind == TLOKind.SECRET_DECOY:
             state = self.tel.state
         else:
             state = None
         return Observation(t=t, method=method, uid=self.uid,
-                           tlo=self, state=state, multiplicity=multiplicity)
+                           state=state, tlo_kind=self.kind, multiplicity=multiplicity)
 
 # Observations are immutable, and are ordered by their associated time. So,
 # a list of observations can be put in chronological order by sorting.
@@ -66,11 +66,11 @@ class Observation:
     # If None, then this observation does not correspond to a TLO.
     uid: Optional[int] = None
         
-    # Convenience pointer to the corresponding TLO object, if applicable.
-    tlo: Optional[TLO] = None
-        
     # State of the observed TEL, if applicable.
     state: Optional[TELState] = None
+        
+    # Kind of the corresponding TLO, if applicable.
+    tlo_kind: TLOKind = None
     
     # How many individual observations this Observation object corresponds to.
     multiplicity: int = 1
@@ -79,8 +79,8 @@ class Observation:
         """Return a copy of this observation, with multiplicity adjusted according to p, or None."""
         multiplicity = random.binomial(n=self.multiplicity, p=p)
         if multiplicity > 0:
-            return Observation(t=self.t, method=self.method, uid=self.uid, tlo=self.tlo, state=self.state,
-                       multiplicity=multiplicity)
+            return Observation(t=self.t, method=self.method, uid=self.uid, state=self.state,
+                               tlo_kind=self.tlo_kind, multiplicity=multiplicity)
         else:
             return None
 
@@ -90,7 +90,7 @@ class File:
     uid: int
         
     # Convenience pointer to the TEL this file corresponds to.
-    tel: TLO
+    tel: TEL
         
     # List of observations assigned to this file.
     obs: List[Observation] = field(default_factory=list)

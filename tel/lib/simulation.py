@@ -53,7 +53,7 @@ class Simulation:
             for tlo in base.tlos:
                 self.tlo_from_uid[tlo.uid] = tlo
         
-        self.intelligence = Intelligence()
+        self.intelligence = Intelligence(self.c)
         self.start()
         
     def tels(self):

@@ -1,9 +1,9 @@
 from copy import copy
 from dataclasses import dataclass, field
 from datetime import timedelta
-from typing import Optional, FrozenSet, List, Tuple
+from typing import Optional, FrozenSet, List, Tuple, Dict
 
-from lib.enums import TELKind, TELState
+from lib.enums import TELKind, TELState, TLOKind
 
 @dataclass
 class DefaultConfig:
@@ -15,7 +15,7 @@ class DefaultConfig:
     mating_fraction: float = 1
         
     # Schedule that each TEL will independently repeat in a loop (at staggered intervals).
-    tel_schedule: List[Tuple[timedelta, TELState]] = field(default_factory=list)
+    tel_schedule: Tuple[Tuple[timedelta, TELState], ...] = ()
         
     # TEL speed (in km/h).
     tel_speed_kmph: float = 20
@@ -34,17 +34,39 @@ class DefaultConfig:
         
     # Files containing external data.
     bases_filename: str = 'data/tel_bases.csv'
+        
+    total_eo_tiles: int = 20_000_000
+    
+    # Chances that an image will be classified as a TEL by an ML algorithm or a human, respectively.
+    # Defined for each kind of TLO, so it represents either a true positive or a false positive rate
+    # depending on the kind.
+    ml_positive_rates: Dict[TLOKind, float] = field(default_factory=lambda: {
+        TLOKind.TEL:   .95,
+        TLOKind.TRUCK: .01,
+        TLOKind.DECOY: .95,
+        TLOKind.SECRET_DECOY: .95,
+    })
+    ml_non_tlo_positive_rate: float = .001
+    ml_processing_duration: timedelta = timedelta(minutes=5)
 
+    human_positive_rates: Dict[TLOKind, float] = field(default_factory=lambda: {
+        TLOKind.TEL:   .95,
+        TLOKind.TRUCK: .01,
+        TLOKind.DECOY: .95*.5,
+        TLOKind.SECRET_DECOY: .95*.9,
+    })
+    human_examples_per_minute: float = 7800
+    
 @dataclass
 class LowAlert(DefaultConfig):
     mating_fraction: float = 1/6
-    tel_schedule: List[Tuple[timedelta, TELState]] = field(default_factory=lambda: [
+    tel_schedule: Tuple[Tuple[timedelta, TELState], ...] = (
         # 8 hours roaming, 32 hours in base. 25% roaming time overall.
         (timedelta(hours=23), TELState.IN_BASE),
         (timedelta(minutes=30), TELState.LEAVING_BASE),
         (timedelta(hours=8), TELState.ROAMING),
         (timedelta(minutes=30), TELState.ARRIVING_BASE),
-    ])
+    )
     tel_speed_kmph: float = 20
     emcon_fraction: float = 0
     decoy_ratio: float = 0
@@ -53,13 +75,13 @@ class LowAlert(DefaultConfig):
 @dataclass
 class MediumAlert(DefaultConfig):
     mating_fraction: float = .5
-    tel_schedule: List[Tuple[timedelta, TELState]] = field(default_factory=lambda: [
+    tel_schedule: Tuple[Tuple[timedelta, TELState], ...] = (
         # 16 hours roaming, 5 hours 20 minutes in base. 75% roaming time overall.
         (timedelta(hours=4, minutes=20), TELState.IN_BASE),
         (timedelta(minutes=30), TELState.LEAVING_BASE),
         (timedelta(hours=16), TELState.ROAMING),
         (timedelta(minutes=30), TELState.ARRIVING_BASE),
-    ])
+    )
     tel_speed_kmph: float = 40
     emcon_fraction: float = .5
     decoy_ratio: float = 1
@@ -68,13 +90,13 @@ class MediumAlert(DefaultConfig):
 @dataclass
 class HighAlert(DefaultConfig):
     mating_fraction: float = 1
-    tel_schedule: List[Tuple[timedelta, TELState]] = field(default_factory=lambda: [
+    tel_schedule: Tuple[Tuple[timedelta, TELState], ...] = (
         # 20 hours/day of driving (including one mid-day refueling stop), 4 hours/day sheltering.
         (timedelta(hours=9, minutes=45), TELState.ROAMING),
         (timedelta(minutes=30), TELState.REFUELING),
         (timedelta(hours=9, minutes=45), TELState.ROAMING),
         (timedelta(hours=4), TELState.SHELTERING),
-    ])
+    )
     tel_speed_kmph: float = 69
     emcon_fraction: float = 1
     decoy_ratio: float = 1

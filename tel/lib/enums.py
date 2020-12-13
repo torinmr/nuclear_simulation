@@ -22,15 +22,12 @@ class TELKind(Enum):
     DF_21AE = auto()
     
 class DetectionMethod(Enum):
-    # Location is assumed known at the beginning of the simulation.
-    INITIAL = auto()
+    INITIAL = auto()  # Location is assumed known at the beginning of the simulation.
     EO = auto()
     SAR = auto()
     
 class TLOKind(Enum):
-    # A normal truck that could be mistaken for a TEL.
-    TRUCK = auto()
-    # A decoy intentionally made to look like a TEL.
-    DECOY = auto()
-    # A real TEL.
-    TEL = auto()
+    TEL = auto()           # A real TEL.
+    TRUCK = auto()         # A normal truck that could be mistaken for a TEL.
+    DECOY = auto()         # A decoy intentionally made to look like a TEL.
+    SECRET_DECOY = auto()  # A special decoy that the US is assumed not to have previous knowledge of.
