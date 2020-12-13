@@ -36,7 +36,9 @@ class Renderer:
         for base in s.bases:
             print(base.status())
             print(base.tel_state_summary())
-        # s.intelligence.print_stats(s)
+
+        s.intelligence.perfect_tracker.analyze_files(s.t)
+        #s.intelligence.realistic_tracker.analyze_files(s.t)
         print()
         self.last_render_time = s.t
         

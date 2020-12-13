@@ -41,7 +41,21 @@ class DefaultConfig:
     # Files containing external data.
     bases_filename: str = 'data/tel_bases.csv'
         
+    # How long passes between the weather changes. Per Jones, P. A. (1992) (https://doi.org/10.1175/1520-0450(1992)031%3C0732:CCDAC%3E2.0.CO;2)
+    # Figure 5, cloud cover is significantly temporally decorrelated after 6-12 hours.
+    weather_change_frequency: timedelta = timedelta(hours=6)
+        
+    # Probability of seeing a TEL at a given moment in time when it's cloudy.
+    cloudy_visibility: float = 0.5
+        
+    # TODO: Should this be switched to a per-base value?
     total_eo_tiles: int = 20_000_000
+        
+    # How many minutes pass between SAR passes of a particular region of China.
+    sar_cadence_min: int = 60
+        
+    # TODO: Make this not a wild guess.
+    per_base_sar_tiles: int = 2_000_000
     
     # Chances that an image will be classified as a TEL by an ML algorithm or a human, respectively.
     # Defined for each kind of TLO, so it represents either a true positive or a false positive rate

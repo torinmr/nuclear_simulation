@@ -1,21 +1,29 @@
 from collections import Counter
 import csv
+from datetime import timedelta
+import numpy.random as random
 
-from lib.enums import TELState, TELKind, TLOKind
+from lib.enums import TELState, TELKind, TLOKind, Weather
 from lib.intelligence_types import TLO
 from lib.location import Location
 from lib.tel import TEL
 
 class TELBase:
     """A home base out of which several TELs are stationed."""
-    def __init__(self, name, location, cloud_cover=None):
+    def __init__(self, c, name, location, weather_probs):
+        self.c = c
         self.name = name
         self.location = location
-        assert cloud_cover
-        self.cloud_cover = cloud_cover
+        self.weather_probs = weather_probs
+        self.update_weather()
         self.tel_count_by_kind = Counter()
         self.tels = []
         self.tlos = []
+
+    def update_weather(self):
+        self.weather = Weather(random.choice(list(self.weather_probs.keys()),
+                                             p=list(self.weather_probs.values())))
+        print("Weather in {} is now {}".format(self.name, self.weather.name))
         
     def add_tel(self, c, **kwargs):
         """Construct a TEL and add it to this base.
@@ -36,10 +44,14 @@ class TELBase:
     def start(self, s):
         for tel in self.tels:
             tel.start(s)
+            
+        frequency = self.c.weather_change_frequency
+        offset = timedelta(minutes=random.randint(frequency / timedelta(minutes=1)))
+        s.schedule_event_relative(self.update_weather, offset, repeat_interval=frequency)
     
     def status(self):
-        return '{} TEL Base ({} TELs) {}'.format(
-            self.name, len(self.tels), self.location.to_string())
+        return '{} TEL Base ({} TELs) {} is {}'.format(
+            self.name, len(self.tels), self.location.to_string(), self.weather.name)
     
     def tel_state_summary(self):
         state_counts = Counter()
@@ -54,9 +66,11 @@ def load_base(c, row):
     name = row['name']
     lat = float(row['latitude'])
     lon = float(row['longitude'])
-    cloud_cover = float(row['cloud_cover'])
+    weather_probs = {}
+    for weather in Weather:
+        weather_probs[weather] = float(row[weather.name])
     
-    base = TELBase(name, Location(lat, lon), cloud_cover=cloud_cover)
+    base = TELBase(c, name, Location(lat, lon), weather_probs)
     for tel_kind in TELKind:
         if c.tel_kinds is not None and tel_kind not in c.tel_kinds:
             continue

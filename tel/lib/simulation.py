@@ -5,6 +5,7 @@ from heapq import heappop, heappush
 from numpy import random
 
 from lib.config import DefaultConfig
+from lib.enums import TLOKind
 from lib.intelligence import Intelligence
 from lib.renderer import Renderer
 from lib.tel_base import TELBase, load_bases
@@ -37,6 +38,7 @@ class Simulation:
         random.seed(seed=rng_seed)
         self.event_queue = []
         self.t = start_datetime.replace(tzinfo=TZ)
+        self.start_t = self.t
         self.next_event_id = 0
         if runtime:
             self.end_datetime = self.t + runtime
@@ -51,7 +53,8 @@ class Simulation:
     def tels(self):
         for base in self.bases:
             for tel in base.tels:
-                yield tel
+                if tel.tlo_kind == TLOKind.TEL:
+                    yield tel
     
     def tlos(self):
         for base in self.bases:

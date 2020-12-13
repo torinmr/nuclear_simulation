@@ -35,5 +35,6 @@ class Intelligence:
         
         self.perfect_tracker.assign_observations(all_observations)
         self.realistic_tracker.assign_observations(all_observations)
+        
 
         

@@ -65,7 +65,7 @@ class TEL:
         
     
     def update_state(self, s, state):
-        print("{}: {} -> {}".format(format_time(s.t), self.name, state))
+        #print("{}: {} -> {}".format(format_time(s.t), self.name, state.name))
         self.state = state
         self.emcon = random.random() < self.c.emcon_fraction
                 

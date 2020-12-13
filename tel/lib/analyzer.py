@@ -28,9 +28,9 @@ class Analyzer(ABC):
         """  
         pass
     
-def timing_stats(start_t, ml_t, final_t):
-    return "ML analysis started at {}, finished at {}. Human analysis finished at {}.".format(
-        format_time(start_t), format_time(ml_t), format_time(final_t))
+def timing_stats(name, start_t, ml_t, final_t):
+    return "{} ML analysis started at {}, finished at {}. Human analysis finished at {}.".format(
+        name, format_time(start_t), format_time(ml_t), format_time(final_t))
 
 def analysis_stats(start_obs, ml_obs, final_obs):
     lines = ["  Positive rates per TELKind:"]
@@ -42,10 +42,13 @@ def analysis_stats(start_obs, ml_obs, final_obs):
     return "\n".join(lines)
     
 class ImageryAnalyzer(Analyzer):
-    def __init__(self, c, name):
+    def __init__(self, c, name, queue_images=False):
         super().__init__(c)
         self.name = name
 
+        TOMORROW TORIN IMPLEMENT QUEUEING OF IMAGES!!!
+        
+        
         # (start_t, start_obs), representing data not yet processed.
         self.ml_processing = None
         # (start_t, start_obs, ml_t, ml_obs), observations finished processing by ML, not yet started by humans.
@@ -76,7 +79,7 @@ class ImageryAnalyzer(Analyzer):
                             self.c.ml_non_tlo_positive_rate)
     
     def analyze(self, observations, t):
-        ret = []
+        final_obs = []
         
         if self.human_processing:
             start_t, start_obs, ml_t, ml_obs = self.human_processing
@@ -84,7 +87,7 @@ class ImageryAnalyzer(Analyzer):
             elapsed_minutes = (t - self.human_processing_start_t).seconds / 60
             if elapsed_minutes * self.c.human_examples_per_minute >= num_observations:
                 final_obs = self.human_process(ml_obs)
-                print(timing_stats(start_t, ml_t, t))
+                print(timing_stats(self.name, start_t, ml_t, t))
                 print(analysis_stats(start_obs, ml_obs, final_obs))
                 self.human_processing = None
                 self.human_processing_start_t = None
@@ -106,4 +109,4 @@ class ImageryAnalyzer(Analyzer):
         if not self.ml_processing and observations:
             self.ml_processing = (t, observations)
             
-        return ret
+        return final_obs
