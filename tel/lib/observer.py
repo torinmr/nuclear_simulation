@@ -223,7 +223,6 @@ class SigIntObserver(Observer):
             if tlo.tel and not tlo.tel.emcon:
                 offset = hash(tlo.tel.name + 'SIGINT') % 60
                 if s.t.minute == offset and random.random() < self.c.sigint_hourly_detect_chance:
-                    print("Observed {}".format(tlo.tel.name))
                     obs.append(tlo.observe(s.t, DetectionMethod.SIGINT, 1))
         return obs
     

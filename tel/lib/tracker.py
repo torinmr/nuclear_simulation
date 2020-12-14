@@ -25,9 +25,10 @@ class Tracker:
         for f in self.files.values():
             f.obs.sort()
             obs = f.obs[-1]
-            print("Latest observation of TEL {} was {} minutes ago by {} in state {}, current state {}.".format(
+            print("Latest observation of TEL {} was {} minutes ago by {} in state {}, current state {}. Roam time {}.".format(
                 f.tel.name, (t - obs.t)/timedelta(minutes=1), obs.method.name,
-                obs.state.name, f.tel.state.name))
+                obs.state.name, f.tel.state.name,
+                f.tel.roaming_time_since_observation(obs, t)))
         
 class PerfectTracker(Tracker):
     def __init__(self, c):
@@ -44,7 +45,3 @@ class RealisticTracker(Tracker):
 
     def assign_observations(self, observations):
         pass
-    
-        
-        
-        

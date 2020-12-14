@@ -22,7 +22,8 @@ class TELBase:
     def update_weather(self):
         self.weather = Weather(random.choice(list(self.c.weather_probabilities.keys()),
                                              p=list(self.c.weather_probabilities.values())))
-        print("Weather in {} is now {}".format(self.name, self.weather.name))
+        if self.c.debug:
+            print("Weather in {} is now {}".format(self.name, self.weather.name))
         
     def add_tel(self, c, baseless=False, **kwargs):
         """Construct a TEL and add it to this base.

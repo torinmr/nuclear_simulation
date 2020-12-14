@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from datetime import timedelta
 from enum import IntEnum, auto
 
 class TimeOfDay(IntEnum):
@@ -45,3 +47,10 @@ class TLOKind(IntEnum):
 class SimulationMode(IntEnum):
     BASE_LOCAL = auto()    # TELs stay within a range of their base.
     FREE_ROAMING = auto()  # TELs can roam over all of China.
+    
+@dataclass
+class NukeType:
+    name: str
+    flight_time: timedelta
+    number: int
+    km2: float

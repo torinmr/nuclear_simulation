@@ -4,10 +4,13 @@ from datetime import timedelta
 import math
 from typing import Optional, FrozenSet, List, Tuple, Dict
 
-from lib.enums import TELKind, TELState, TLOKind, Weather, SimulationMode
+from lib.enums import TELKind, TELState, TLOKind, Weather, SimulationMode, NukeType
 
 @dataclass
 class DefaultConfig:
+    # Print out verbose debugging information.
+    debug: bool = False
+    
     # TEL kinds relevant to the simulation. If provided, TEL kinds not on the
     # list are not simulated and not tracked by the US.
     tel_kinds: Optional[FrozenSet[TELKind]] = None
@@ -45,6 +48,8 @@ class DefaultConfig:
     
     # Files containing external data.
     bases_filename: str = 'data/tel_bases.csv'
+        
+    output_dir: str = 'output/test'
         
     # How long passes between the weather changes. Per Jones, P. A. (1992) (https://doi.org/10.1175/1520-0450(1992)031%3C0732:CCDAC%3E2.0.CO;2)
     # Figure 5, cloud cover is significantly temporally decorrelated after 6-12 hours.
@@ -119,6 +124,29 @@ class DefaultConfig:
         TLOKind.SECRET_DECOY: .25,
     })
         
+    # Adjustment from km2 occupied by TEL (ignoring roads) to km2 destroyed by nukes.
+    # Could be higher than 1 if nukes overlap inefficiently, or less because TELs can only drive
+    # on roads.
+    destruction_area_factor: float = .5
+        
+    # Description of US nuclear arsenal. Also determines order of using missiles - earlier missiles
+    # are used first (against the "easiest" targets).
+    arsenal: Tuple[NukeType, ...] = (
+        NukeType('Pacific W76-1', timedelta(minutes=12.4), 405, 31.2),
+        NukeType('Pacific W88', timedelta(minutes=12.4), 135, 91.9),  
+        NukeType('Distant W76-1', timedelta(minutes=24.8), 270, 31.2),
+        NukeType('Distant W88', timedelta(minutes=24.8), 90, 91.9),
+        NukeType('W78', timedelta(minutes=30), 120, 74.9),
+        NukeType('W87', timedelta(minutes=30), 60, 69.6),
+    )
+        
+    # How many nukes the US launches at each TEL to ensure destruction.
+    nukes_per_tel: int = 2
+        
+    # US missile defense statistics
+    num_interceptors: int = 44
+    interceptor_kill_prob: float = .5
+        
     def __post_init__(self):
         satellite_tiles_per_km2 = self.road_km_per_km2 * self.satellite_tiles_per_road_km
         
@@ -134,7 +162,7 @@ class DefaultConfig:
             self.tel_radius_km = min(self.tel_speed_kmph * (self.max_roam_time / timedelta(hours=1)) / 2,
                                      self.tel_max_roam_km / 2)
             self.tel_area_km2 = math.pi * self.tel_radius_km**2
-            
+
             self.satellite_tiles_per_base = self.tel_area_km2 * satellite_tiles_per_km2
 
             # Number of heavy trucks per person on average.
@@ -200,3 +228,4 @@ tel_kinds_continental_us = frozenset({TELKind.DF_31A, TELKind.DF_31AG})
 tel_kinds_alaska_hawaii = tel_kinds_continental_us | frozenset({TELKind.DF_31})
 tel_kinds_guam = tel_kinds_alaska_hawaii | frozenset({TELKind.DF_26})
 tel_kinds_us_allies = tel_kinds_guam | frozenset({TELKind.DF_21AE})
+

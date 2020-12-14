@@ -5,10 +5,12 @@ from lib.enums import DetectionMethod
 from lib.observer import EOObserver, SARObserver, StandoffObserver, SigIntObserver, GroundSensorObserver
 from lib.analyzer import ImageryAnalyzer, PassthroughAnalyzer
 from lib.tracker import PerfectTracker, RealisticTracker
+from lib.assessor import assess
 
 class Intelligence:
     """Class representing US intelligence efforts to locate TELs."""
     def __init__(self, c):
+        self.c = c
         self.eo_observer = EOObserver(c)
         self.eo_analyzer = ImageryAnalyzer(c, "EO")
         self.sar_observer = SARObserver(c)
@@ -21,6 +23,9 @@ class Intelligence:
         self.ground_analyzer = PassthroughAnalyzer(c)
         self.perfect_tracker = PerfectTracker(c)
         self.realistic_tracker = RealisticTracker(c)
+        
+        self.ts = []
+        self.assessment_stats = []
     
     def start(self, s):
         s.schedule_event_relative(lambda: self.process(s), timedelta(),
@@ -54,5 +59,5 @@ class Intelligence:
         self.perfect_tracker.assign_observations(all_obs)
         self.realistic_tracker.assign_observations(all_obs)
         
-
-        
+        self.ts.append(s.t)
+        self.assessment_stats.append(assess(self.c, s.t, self.perfect_tracker.files))

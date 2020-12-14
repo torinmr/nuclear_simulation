@@ -44,7 +44,7 @@ class Simulation:
             self.end_datetime = self.t + runtime
         
         self.render_interval = timedelta(minutes=render_interval_mins)        
-        self.renderer = Renderer(output_folder)
+        self.renderer = Renderer(self.c, output_folder)
         
         if self.c.simulation_mode == SimulationMode.BASE_LOCAL:
             self.bases = load_bases(self.c)
@@ -96,7 +96,7 @@ class Simulation:
         while self._process_next_event():
             pass
         self.renderer.render(self)
-        self.renderer.final_summary()
+        self.renderer.final_summary(self)
     
     def _process_next_event(self):
         """Pop the next event off of the queue and resolve it.

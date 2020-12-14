@@ -84,8 +84,9 @@ class ImageryAnalyzer(Analyzer):
             elapsed_minutes = (t - self.human_processing_start_t).seconds / 60
             if elapsed_minutes * self.c.human_examples_per_minute >= num_observations:
                 final_obs = self.human_process(ml_obs)
-                print(timing_stats(self.name, start_t, ml_t, t))
-                print(analysis_stats(start_obs, ml_obs, final_obs))
+                if self.c.debug:
+                    print(timing_stats(self.name, start_t, ml_t, t))
+                    print(analysis_stats(start_obs, ml_obs, final_obs))
                 self.human_processing = None
                 self.human_processing_start_t = None
         
