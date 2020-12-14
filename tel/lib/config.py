@@ -111,6 +111,13 @@ class DefaultConfig:
         
     # Probability (once per hour indendently for each TEL) to detect a TEL not practicing emissions control.
     sigint_hourly_detect_chance: float = 0.05
+    
+    # Probability a ground sensor monitoring entrances and exits of TEL bases will detect this TLO type.
+    ground_sensor_positive_rates: Dict[TLOKind, float] = field(default_factory=lambda: {
+        TLOKind.TEL:   .5,
+        TLOKind.DECOY: .1,
+        TLOKind.SECRET_DECOY: .25,
+    })
         
     def __post_init__(self):
         satellite_tiles_per_km2 = self.road_km_per_km2 * self.satellite_tiles_per_road_km

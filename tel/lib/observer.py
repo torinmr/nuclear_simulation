@@ -226,3 +226,23 @@ class SigIntObserver(Observer):
                     print("Observed {}".format(tlo.tel.name))
                     obs.append(tlo.observe(s.t, DetectionMethod.SIGINT, 1))
         return obs
+    
+class GroundSensorObserver(Observer):
+    def __init__(self, c):
+        super().__init__(c)
+        
+    def observe(self, s):
+        obs = []
+        for tlo in s.tlos():
+            if not tlo.tel:
+                continue
+            tel = tlo.tel
+            if (tel.state == TELState.ARRIVING_BASE and not tel.ground_sensor_attempted):
+                tel.ground_sensor_attempted = True
+                if random.random() < self.c.ground_sensor_positive_rates[tlo.kind]:
+                    obs.append(tlo.observe(s.t, DetectionMethod.GROUND_SENSOR, 1))
+            elif (tel.state == TELState.LEAVING_BASE and not tel.ground_sensor_attempted):
+                tel.ground_sensor_attempted = True
+                if random.random() < self.c.ground_sensor_positive_rates[tlo.kind]:
+                    obs.append(tlo.observe(s.t, DetectionMethod.GROUND_SENSOR, 1))
+        return obs

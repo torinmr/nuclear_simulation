@@ -31,11 +31,11 @@
     
 * Final list:
  - [X] Make simulation support free roaming and local modes.
- - [ ] Implement remaining "easy" observer methods
+ - [X] Implement remaining "easy" observer methods
     - [X] Fix queueing problem for SAR satellite
     - [X] Standoff aircraft
-    - [ ] Unattended ground sensors (near base)
-    - [ ] GEO Sigint satellites - 5% per hour per TEL when not in EMCON.
+    - [X] Unattended ground sensors (near base)
+    - [X] GEO Sigint satellites - 5% per hour per TEL when not in EMCON.
  - [ ] Implement TEL destruction logic
  - [ ] Implement missile defense.
  - [ ] Improving tracking logic.

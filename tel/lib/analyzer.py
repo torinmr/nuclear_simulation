@@ -108,7 +108,7 @@ class ImageryAnalyzer(Analyzer):
             
         return final_obs
     
-class SigIntAnalyzer(Analyzer):
+class PassthroughAnalyzer(Analyzer):
     def __init__(self, c):
         super().__init__(c)
         
