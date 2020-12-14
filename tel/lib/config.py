@@ -95,9 +95,6 @@ class DefaultConfig:
     sar_cadence_min: int = 30
     # How long each SAR pass lasts (maintains visibility of a given point).
     sar_duration_min: int = 5
-        
-    # TODO: Make this not a wild guess.
-    per_base_sar_tiles: int = 2_000_000
     
     # Chances that an image will be classified as a TEL by an ML algorithm or a human, respectively.
     # Defined for each kind of TLO, so it represents either a true positive or a false positive rate
