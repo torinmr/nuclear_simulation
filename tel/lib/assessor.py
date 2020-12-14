@@ -19,6 +19,7 @@ class AssessmentStats:
     avg_roam_time_min: float
     area_to_destroy_by_time: Dict[float, float]
     missiles_remaining: int
+    mated_missiles_remaining: int
     retaliation_prob: float
 
 def assess(c, t, files):
@@ -74,6 +75,7 @@ def assess(c, t, files):
 
         if len(remaining_tels) > 0:
             print('First strike not possible, {} TELs remaining.'.format(missiles_remaining))
-            
-    retaliation_prob = missile_retaliation_prob(c, missiles_remaining)
-    return AssessmentStats(avg_roam_time, area_to_destroy_by_time, missiles_remaining, retaliation_prob)
+    mated_missiles_remaining = len([tel for tel in remaining_tels if tel.mated])        
+    retaliation_prob = missile_retaliation_prob(c, mated_missiles_remaining)
+    return AssessmentStats(avg_roam_time, area_to_destroy_by_time, missiles_remaining,
+                           mated_missiles_remaining, retaliation_prob)

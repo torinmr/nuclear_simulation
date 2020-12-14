@@ -6,6 +6,11 @@ from typing import Optional, FrozenSet, List, Tuple, Dict
 
 from lib.enums import TELKind, TELState, TLOKind, Weather, SimulationMode, NukeType
 
+tel_kinds_continental_us = frozenset({TELKind.DF_31A, TELKind.DF_31AG})
+tel_kinds_alaska_hawaii = tel_kinds_continental_us | frozenset({TELKind.DF_31})
+tel_kinds_guam = tel_kinds_alaska_hawaii | frozenset({TELKind.DF_26})
+tel_kinds_us_allies = tel_kinds_guam | frozenset({TELKind.DF_21AE})
+
 @dataclass
 class DefaultConfig:
     # Print out verbose debugging information.
@@ -13,7 +18,7 @@ class DefaultConfig:
     
     # TEL kinds relevant to the simulation. If provided, TEL kinds not on the
     # list are not simulated and not tracked by the US.
-    tel_kinds: Optional[FrozenSet[TELKind]] = None
+    tel_kinds: Optional[FrozenSet[TELKind]] = tel_kinds_alaska_hawaii
         
     # Fraction of TELs mated (armed with a nuclear warhead) at any given time.
     mating_fraction: float = 1
@@ -147,6 +152,9 @@ class DefaultConfig:
     num_interceptors: int = 44
     interceptor_kill_prob: float = .5
         
+    # Increase China's number of TELs by this ratio.
+    tel_count_multiplier: float = 1
+        
     def __post_init__(self):
         satellite_tiles_per_km2 = self.road_km_per_km2 * self.satellite_tiles_per_road_km
         
@@ -223,9 +231,27 @@ class HighAlert(DefaultConfig):
     emcon_fraction: float = 1
     decoy_ratio: float = 1
     secret_decoy_ratio: float = 1
-        
-tel_kinds_continental_us = frozenset({TELKind.DF_31A, TELKind.DF_31AG})
-tel_kinds_alaska_hawaii = tel_kinds_continental_us | frozenset({TELKind.DF_31})
-tel_kinds_guam = tel_kinds_alaska_hawaii | frozenset({TELKind.DF_26})
-tel_kinds_us_allies = tel_kinds_guam | frozenset({TELKind.DF_21AE})
 
+# Configurations to use for tests:
+base_configs = {
+    'low': LowAlert,
+    'med': MediumAlert,
+    'high': HighAlert,
+}
+
+test_configs = []
+for alert_level, C in base_configs.items():
+    test_configs.append(C(output_dir='output/normal_{}'.format(alert_level)))
+    test_configs.append(C(output_dir='output/full_sar_{}'.format(alert_level),
+                          sar_duration_min=30))
+    test_configs.append(C(output_dir='output/no_ai_{}'.format(alert_level),
+                          ml_positive_rates={
+                              TLOKind.TEL:   1,
+                              TLOKind.TRUCK: 1,
+                              TLOKind.DECOY: 1,
+                              TLOKind.SECRET_DECOY: 1,
+                          },
+                          ml_non_tlo_positive_rate=1,
+                          ml_processing_duration=timedelta()))
+    test_configs.append(C(output_dir='output/double_tels_{}'.format(alert_level),
+                          tel_count_multiplier=2))

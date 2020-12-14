@@ -36,7 +36,9 @@
     - [X] Standoff aircraft
     - [X] Unattended ground sensors (near base)
     - [X] GEO Sigint satellites - 5% per hour per TEL when not in EMCON.
- - [ ] Implement TEL destruction logic
- - [ ] Implement missile defense.
+ - [X] Implement TEL destruction logic
+ - [X] Implement missile defense.
+ - [X] Implement reporting/graphs.
+ - [X] Run different scenarios.
  - [ ] Improving tracking logic.
  - [ ] Implement cued intelligence sources

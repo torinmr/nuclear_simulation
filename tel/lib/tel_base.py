@@ -88,7 +88,7 @@ def load_base(c, row):
             print("No column for {} in TEL base csv file".format(tel_kind.name))
             continue
             
-        num_tels = int(row[tel_kind.name])
+        num_tels = round(c.tel_count_multiplier * int(row[tel_kind.name]))
         for _ in range(num_tels):
             tel = base.add_tel(c, tel_kind=tel_kind, tlo_kind=TLOKind.TEL)
             tlo = TLO(kind=TLOKind.TEL, tel=tel, uid=tel.uid, base=base)
@@ -139,7 +139,7 @@ def load_tels_from_base(c, row):
             print("No column for {} in TEL base csv file".format(tel_kind.name))
             continue
             
-        num_tels = int(row[tel_kind.name])
+        num_tels = round(c.tel_count_multiplier * int(row[tel_kind.name]))
         for _ in range(num_tels):
             tel = base.add_tel(c, baseless=True, tel_kind=tel_kind, tlo_kind=TLOKind.TEL)
             tlo = TLO(kind=TLOKind.TEL, tel=tel, uid=tel.uid)

@@ -16,7 +16,7 @@ def time_plotter(ax, ts, y, param_dict):
     ax.set_xlabel('Simulation time')
     ax.xaxis.set_major_formatter(DateFormatter('%H:%M', tz=tz))
     ax.xaxis.set_major_locator(AutoDateLocator(tz=tz))
-    out = ax.plot(x, y, linewidth=.75, **param_dict)
+    out = ax.plot(x, y, linewidth=.5, **param_dict)
 
 class Renderer:
     def __init__(self, c, save_folder):
@@ -44,6 +44,7 @@ class Renderer:
         avg_roam_time_min = []
         area_to_destroy_by_time = defaultdict(list)
         missiles_remaining = []
+        mated_missiles_remaining = []
         retaliation_prob = []
         
         if not os.path.exists(self.c.output_dir):
@@ -53,7 +54,7 @@ class Renderer:
             fieldnames = ['time', 'avg_roam_time_min']
             fieldnames += ['area_to_destroy_{}min'.format(time)
                            for time in s.intelligence.assessment_stats[0].area_to_destroy_by_time]
-            fieldnames += ['missiles_remaining', 'retaliation_prob']
+            fieldnames += ['missiles_remaining', 'mated_missiles_remaining', 'retaliation_prob']
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             for t, stats in zip(ts, s.intelligence.assessment_stats):
@@ -61,11 +62,13 @@ class Renderer:
                 for time, area in stats.area_to_destroy_by_time.items():
                     area_to_destroy_by_time[time].append(area / 1000)
                 missiles_remaining.append(stats.missiles_remaining)
+                mated_missiles_remaining.append(stats.mated_missiles_remaining)
                 retaliation_prob.append(stats.retaliation_prob)
                 d = {
                     'time': format_time(t),
                     'avg_roam_time_min': '{:.1f}'.format(stats.avg_roam_time_min),
                     'missiles_remaining': stats.missiles_remaining,
+                    'mated_missiles_remaining': stats.mated_missiles_remaining,
                     'retaliation_prob': '{:.4f}'.format(stats.retaliation_prob),
                 }
                 for time, area in stats.area_to_destroy_by_time.items():
@@ -91,8 +94,10 @@ class Renderer:
         
         fig, ax = plt.subplots()
         fig.dpi = 200
-        time_plotter(ax, ts, missiles_remaining)
-        ax.set_ylabel('Number of TELs remaining')
+        time_plotter(ax, ts, missiles_remaining, {'label': 'Total TELs remaining'})
+        time_plotter(ax, ts, mated_missiles_remaining, {'label': 'Mated TELs remaining'})
+        ax.set_ylabel('Number remaining')
+        ax.legend(loc='upper left')
         plt.savefig(self.c.output_dir + '/remaining.png')
         
         fig, ax = plt.subplots()
