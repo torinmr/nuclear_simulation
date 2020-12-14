@@ -42,7 +42,7 @@ def analysis_stats(start_obs, ml_obs, final_obs):
     return "\n".join(lines)
     
 class ImageryAnalyzer(Analyzer):
-    def __init__(self, c, name, queue_images=False):
+    def __init__(self, c, name):
         super().__init__(c)
         self.name = name
         
@@ -107,3 +107,10 @@ class ImageryAnalyzer(Analyzer):
             self.ml_processing = (t, observations)
             
         return final_obs
+    
+class SigIntAnalyzer(Analyzer):
+    def __init__(self, c):
+        super().__init__(c)
+        
+    def analyze(self, observations, t):
+        return observations

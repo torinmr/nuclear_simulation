@@ -2,8 +2,8 @@ from collections import defaultdict, namedtuple, Counter
 from datetime import timedelta
 
 from lib.enums import DetectionMethod
-from lib.observer import EOObserver, SARObserver, StandoffObserver
-from lib.analyzer import ImageryAnalyzer
+from lib.observer import EOObserver, SARObserver, StandoffObserver, SigIntObserver
+from lib.analyzer import ImageryAnalyzer, SigIntAnalyzer
 from lib.tracker import PerfectTracker, RealisticTracker
 
 class Intelligence:
@@ -15,6 +15,8 @@ class Intelligence:
         self.sar_analyzer = ImageryAnalyzer(c, "SAR")
         self.standoff_observer = StandoffObserver(c)
         self.standoff_analyzer = ImageryAnalyzer(c, "Standoff")
+        self.sigint_observer = SigIntObserver(c)
+        self.sigint_analyzer = SigIntAnalyzer(c)
         self.perfect_tracker = PerfectTracker(c)
         self.realistic_tracker = RealisticTracker(c)
     
@@ -38,6 +40,10 @@ class Intelligence:
         raw_standoff_obs = self.standoff_observer.observe(s)
         analyzed_standoff_obs = self.standoff_analyzer.analyze(raw_standoff_obs, s.t)
         all_obs += analyzed_standoff_obs
+        
+        raw_sigint_obs = self.sigint_observer.observe(s)
+        analyzed_sigint_obs = self.sigint_analyzer.analyze(raw_sigint_obs, s.t)
+        all_obs += analyzed_sigint_obs
         
         self.perfect_tracker.assign_observations(all_obs)
         self.realistic_tracker.assign_observations(all_obs)

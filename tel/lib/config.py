@@ -64,7 +64,7 @@ class DefaultConfig:
         
     # Percentage of China's area that is observable from within 400km of the coast.
     # Rough guesstimate. Only used in free roaming mode, otherwise base-local data is used.
-    offshore_observability: float = .4
+    offshore_observability: float = .3
     # How often to update whether a free-roaming TEL is near the shore or not.
     offshore_change_frequency: timedelta = timedelta(hours=4)
 
@@ -108,6 +108,9 @@ class DefaultConfig:
         TLOKind.SECRET_DECOY: .95*.9,
     })
     human_examples_per_minute: float = 7800
+        
+    # Probability (once per hour indendently for each TEL) to detect a TEL not practicing emissions control.
+    sigint_hourly_detect_chance: float = 0.05
         
     def __post_init__(self):
         satellite_tiles_per_km2 = self.road_km_per_km2 * self.satellite_tiles_per_road_km

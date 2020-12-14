@@ -151,7 +151,6 @@ class SARObserver(Observer):
         if self.c.simulation_mode == SimulationMode.BASE_LOCAL:
             for base in s.bases:
                 if sar_visibility(self.c, s.t, base.tlos[0]) > 0:
-                    print("{} base visible at {}".format(base.name, format_time(s.t)))
                     new_obs, num_obs = self.observe_tlos(s.t, base.tlos)
                     obs += new_obs
                     non_tlo_obs = self.c.satellite_tiles_per_base - num_obs
@@ -212,4 +211,18 @@ class StandoffObserver(Observer):
             non_tlo_obs = self.c.satellite_tiles * self.c.offshore_observability - num_obs
             obs.append(Observation(t=s.t, method=DetectionMethod.OFFSHORE_SAR,
                                    multiplicity=non_tlo_obs))
+        return obs
+    
+class SigIntObserver(Observer):
+    def __init__(self, c):
+        super().__init__(c)
+        
+    def observe(self, s):
+        obs = []
+        for tlo in s.tlos():
+            if tlo.tel and not tlo.tel.emcon:
+                offset = hash(tlo.tel.name + 'SIGINT') % 60
+                if s.t.minute == offset and random.random() < self.c.sigint_hourly_detect_chance:
+                    print("Observed {}".format(tlo.tel.name))
+                    obs.append(tlo.observe(s.t, DetectionMethod.SIGINT, 1))
         return obs

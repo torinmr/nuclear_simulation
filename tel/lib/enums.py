@@ -31,6 +31,7 @@ class DetectionMethod(IntEnum):
     EO = auto()
     SAR = auto()
     OFFSHORE_SAR = auto()
+    SIGINT = auto()
     
 class TLOKind(IntEnum):
     TEL = auto()           # A real TEL.
