@@ -36,6 +36,7 @@ class TEL:
         self.tlo_kind = tlo_kind
         if not self.base:
             self.update_weather()
+            self.update_shore()
             # Hack alert: Give non-base TELs a random location somewhere vaguely in China,
             # so that they can have a realistic distribution of sunrise times.
             self.location = random_location()
@@ -64,6 +65,9 @@ class TEL:
                                              p=list(self.c.weather_probabilities.values())))
         #print("Weather around {} is now {}".format(self.name, self.weather.name))
         
+    def update_shore(self):
+        self.near_shore = random.random() < self.c.offshore_observability
+        
     def start(self, s):
         if self.offset_schedule[0][0] == timedelta():
             self.update_state(s, self.offset_schedule[0][1])
@@ -80,7 +84,11 @@ class TEL:
             s.schedule_event_relative(self.update_weather, offset, repeat_interval=frequency)
             
             offset_mins = hash(self.name + "SAR") % self.c.sar_cadence_min
-            self.sar_offset = s.t + timedelta(minutes=offset_mins)   
+            self.sar_offset = s.t + timedelta(minutes=offset_mins)  
+            
+            frequency = self.c.offshore_change_frequency
+            offset = timedelta(minutes=random.randint(frequency / timedelta(minutes=1)))
+            s.schedule_event_relative(self.update_shore, offset, repeat_interval=frequency)
         
     
     def update_state(self, s, state):

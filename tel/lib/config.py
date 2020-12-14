@@ -65,6 +65,8 @@ class DefaultConfig:
     # Percentage of China's area that is observable from within 400km of the coast.
     # Rough guesstimate. Only used in free roaming mode, otherwise base-local data is used.
     offshore_observability: float = .4
+    # How often to update whether a free-roaming TEL is near the shore or not.
+    offshore_change_frequency: timedelta = timedelta(hours=4)
 
     # How many 250m x 250m tiles need to be examined per km2 of land area.
     # Would be naively be 16, but is adjusted downward based on the density of roads in China.

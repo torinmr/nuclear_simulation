@@ -30,6 +30,7 @@ class DetectionMethod(IntEnum):
     INITIAL = auto()  # Location is assumed known at the beginning of the simulation.
     EO = auto()
     SAR = auto()
+    OFFSHORE_SAR = auto()
     
 class TLOKind(IntEnum):
     TEL = auto()           # A real TEL.

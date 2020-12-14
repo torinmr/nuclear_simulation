@@ -2,7 +2,7 @@ from collections import defaultdict, namedtuple, Counter
 from datetime import timedelta
 
 from lib.enums import DetectionMethod
-from lib.observer import EOObserver, SARObserver
+from lib.observer import EOObserver, SARObserver, StandoffObserver
 from lib.analyzer import ImageryAnalyzer
 from lib.tracker import PerfectTracker, RealisticTracker
 
@@ -13,6 +13,8 @@ class Intelligence:
         self.eo_analyzer = ImageryAnalyzer(c, "EO")
         self.sar_observer = SARObserver(c)
         self.sar_analyzer = ImageryAnalyzer(c, "SAR")
+        self.standoff_observer = StandoffObserver(c)
+        self.standoff_analyzer = ImageryAnalyzer(c, "Standoff")
         self.perfect_tracker = PerfectTracker(c)
         self.realistic_tracker = RealisticTracker(c)
     
@@ -23,18 +25,22 @@ class Intelligence:
         self.realistic_tracker.start(s)
     
     def process(self, s):
-        all_observations = []
+        all_obs = []
 
-        raw_eo_observations = self.eo_observer.observe(s)
-        analyzed_eo_observations = self.eo_analyzer.analyze(raw_eo_observations, s.t)
-        all_observations += analyzed_eo_observations
+        raw_eo_obs = self.eo_observer.observe(s)
+        analyzed_eo_obs = self.eo_analyzer.analyze(raw_eo_obs, s.t)
+        all_obs += analyzed_eo_obs
         
-        raw_sar_observations = self.sar_observer.observe(s)
-        analyzed_sar_observations = self.sar_analyzer.analyze(raw_sar_observations, s.t)
-        all_observations += analyzed_sar_observations
+        raw_sar_obs = self.sar_observer.observe(s)
+        analyzed_sar_obs = self.sar_analyzer.analyze(raw_sar_obs, s.t)
+        all_obs += analyzed_sar_obs
         
-        self.perfect_tracker.assign_observations(all_observations)
-        self.realistic_tracker.assign_observations(all_observations)
+        raw_standoff_obs = self.standoff_observer.observe(s)
+        analyzed_standoff_obs = self.standoff_analyzer.analyze(raw_standoff_obs, s.t)
+        all_obs += analyzed_standoff_obs
+        
+        self.perfect_tracker.assign_observations(all_obs)
+        self.realistic_tracker.assign_observations(all_obs)
         
 
         

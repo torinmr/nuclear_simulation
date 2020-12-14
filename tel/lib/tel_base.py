@@ -14,7 +14,6 @@ class TELBase:
         self.c = c
         self.name = name
         self.location = location
-        self.update_weather()
         self.tel_count_by_kind = Counter()
         self.tels = []
         self.tlos = []
@@ -49,6 +48,7 @@ class TELBase:
         return tel
         
     def start(self, s):
+        self.update_weather()
         for tel in self.tels:
             tel.start(s)
             

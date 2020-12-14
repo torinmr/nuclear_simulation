@@ -63,12 +63,6 @@ def weather_visibility(c, tlo):
                       c.cloudy_visibility * c.weather_probabilities[Weather.CLOUDY])
         return visibility
     
-def offshore_visibility(c, tlo):
-    if tlo.base:
-        return tlo.base.offshore_observability
-    else:
-        return c.offshore_observability
-    
 def obstruction_visibility(tlo):
     # TELs and decoys in physical shelters can't be observed by satellites.
     if tlo.tel and tlo.tel.state in {TELState.IN_BASE, TELState.SHELTERING}:
@@ -154,7 +148,6 @@ class SARObserver(Observer):
     
     def observe(self, s):
         obs = []
-        
         if self.c.simulation_mode == SimulationMode.BASE_LOCAL:
             for base in s.bases:
                 if sar_visibility(self.c, s.t, base.tlos[0]) > 0:
@@ -171,4 +164,52 @@ class SARObserver(Observer):
             obs.append(Observation(t=s.t, method=DetectionMethod.SAR,
                                    multiplicity=non_tlo_obs))
         return obs
+
+    
+def offshore_visibility(c, tlo):
+    if tlo.base:
+        return tlo.base.offshore_observability
+    elif tlo.tel:
+        return 1 if tlo.tel.near_shore else 0
+    else:
+        return c.offshore_observability
+
+class StandoffObserver(Observer):
+    def __init__(self, c):
+        super().__init__(c)
         
+    def observe_tlos(self, t, tlos):
+        obs = []
+        total_observed = 0
+        for tlo in tlos:
+            day_frac = daylight_fraction(t, tlo)
+            p_visible = 1
+            p_visible *= offshore_visibility(self.c, tlo)
+            if tlo.kind == TLOKind.TRUCK:
+                p_visible *= truck_utilization_fraction(self.c, day_frac)
+            p_visible *= obstruction_visibility(tlo)
+            
+            num_observed = random.binomial(n=tlo.multiplicity, p=p_visible)
+            if num_observed > 0:
+                obs.append(tlo.observe(t, DetectionMethod.OFFSHORE_SAR, num_observed))
+                total_observed += num_observed
+        return obs, total_observed
+    
+    def observe(self, s):
+        obs = []
+        if self.c.simulation_mode == SimulationMode.BASE_LOCAL:
+            for base in s.bases:
+                offshore_vis = offshore_visibility(self.c, base.tlos[0])
+                if offshore_vis > 0:
+                    new_obs, num_obs = self.observe_tlos(s.t, base.tlos)
+                    obs += new_obs
+                    non_tlo_obs = self.c.satellite_tiles_per_base * offshore_vis - num_obs
+                    obs.append(Observation(t=s.t, method=DetectionMethod.OFFSHORE_SAR,
+                                            multiplicity=non_tlo_obs))
+        elif self.c.simulation_mode == SimulationMode.FREE_ROAMING:
+            new_obs, num_obs = self.observe_tlos(s.t, s.free_tlos)
+            obs += new_obs
+            non_tlo_obs = self.c.satellite_tiles * self.c.offshore_observability - num_obs
+            obs.append(Observation(t=s.t, method=DetectionMethod.OFFSHORE_SAR,
+                                   multiplicity=non_tlo_obs))
+        return obs
