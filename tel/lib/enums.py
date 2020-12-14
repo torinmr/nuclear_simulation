@@ -36,3 +36,9 @@ class TLOKind(IntEnum):
     TRUCK = auto()         # A normal truck that could be mistaken for a TEL.
     DECOY = auto()         # A decoy intentionally made to look like a TEL.
     SECRET_DECOY = auto()  # A special decoy that the US is assumed not to have previous knowledge of.
+
+# Mode used for simulating TEL roaming, set at the simulation level. Determines how effects like
+# weather are simulated, and how the number of potential false positive objects are calculated.
+class SimulationMode(IntEnum):
+    BASE_LOCAL = auto()    # TELs stay within a range of their base.
+    FREE_ROAMING = auto()  # TELs can roam over all of China.

@@ -33,9 +33,10 @@ class Renderer:
     def render(self, s):
         print()
         print("*** Rendering at time:", format_time(s.t))
-        for base in s.bases:
-            print(base.status())
-            print(base.tel_state_summary())
+        if s.bases:
+            for base in s.bases:
+                print(base.status())
+                print(base.tel_state_summary())
 
         s.intelligence.perfect_tracker.analyze_files(s.t)
         #s.intelligence.realistic_tracker.analyze_files(s.t)

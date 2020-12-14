@@ -19,9 +19,24 @@
     - [X] Implement basic skeleton of US intelligence tracking logic.
     - [X] Implement EO observer
     - [X] Implement EO analyzer
-    - [ ] Implement SAR observer
+    - [X] Implement SAR observer
         - Satellite pass simulation (use https://github.com/skyfielders?)
     - [X] Implement SAR analyzer
     - [X] Integrate multiple sources of analysis data in working simulation.
     - [X] Implement better method of reporting on and analyzing detection latency.
     - [ ] Implement analytics/visualization of detection latency and false positives changing over time.
+    
+    
+    
+    
+* Final list:
+ - [X] Make simulation support free roaming and local modes.
+ - [ ] Implement remaining "easy" observer methods
+    - [X] Fix queueing problem for SAR satellite
+    - [ ] Standoff aircraft
+    - [ ] Unattended ground sensors (near base)
+    - [ ] GEO Sigint satellites - 5% per hour per TEL when not in EMCON.
+ - [ ] Implement TEL destruction logic
+ - [ ] Implement missile defense.
+ - [ ] Improving tracking logic.
+ - [ ] Implement cued intelligence sources

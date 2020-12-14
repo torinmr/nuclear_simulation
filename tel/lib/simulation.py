@@ -5,10 +5,10 @@ from heapq import heappop, heappush
 from numpy import random
 
 from lib.config import DefaultConfig
-from lib.enums import TLOKind
+from lib.enums import TLOKind, SimulationMode
 from lib.intelligence import Intelligence
 from lib.renderer import Renderer
-from lib.tel_base import TELBase, load_bases
+from lib.tel_base import TELBase, load_bases, load_tels_from_bases
 
 TZ = tz.gettz('Asia/Shanghai')
 
@@ -46,25 +46,48 @@ class Simulation:
         self.render_interval = timedelta(minutes=render_interval_mins)        
         self.renderer = Renderer(output_folder)
         
-        self.bases = load_bases(c)
+        if self.c.simulation_mode == SimulationMode.BASE_LOCAL:
+            self.bases = load_bases(self.c)
+        else:
+            self.bases = None
+    
+        if self.c.simulation_mode == SimulationMode.FREE_ROAMING:
+            self.free_tels, self.free_tlos = load_tels_from_bases(self.c)
+        else:
+            self.free_tels = None
+            self.free_tlos = None
+            
         self.intelligence = Intelligence(self.c)
         self.start()
         
     def tels(self):
-        for base in self.bases:
-            for tel in base.tels:
+        if self.bases:
+            for base in self.bases:
+                for tel in base.tels:
+                    if tel.tlo_kind == TLOKind.TEL:
+                        yield tel
+        if self.free_tels:
+            for tel in self.free_tels:
                 if tel.tlo_kind == TLOKind.TEL:
                     yield tel
     
     def tlos(self):
-        for base in self.bases:
-            for tlo in base.tlos:
+        if self.bases:
+            for base in self.bases:
+                for tlo in base.tlos:
+                    yield tlo
+        if self.free_tlos:
+            for tlo in self.free_tlos:
                 yield tlo
         
     def start(self):
         """Start each of the entities in the simulation (i.e. schedule their update events)."""
-        for base in self.bases:
-            base.start(self)
+        if self.bases:
+            for base in self.bases:
+                base.start(self)
+        if self.free_tels:
+            for tel in self.free_tels:
+                tel.start(self)
         self.intelligence.start(self)
         self.renderer.start(self)
         

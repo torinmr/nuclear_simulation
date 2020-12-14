@@ -45,9 +45,6 @@ class ImageryAnalyzer(Analyzer):
     def __init__(self, c, name, queue_images=False):
         super().__init__(c)
         self.name = name
-
-        TOMORROW TORIN IMPLEMENT QUEUEING OF IMAGES!!!
-        
         
         # (start_t, start_obs), representing data not yet processed.
         self.ml_processing = None

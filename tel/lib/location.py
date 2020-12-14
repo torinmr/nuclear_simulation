@@ -1,6 +1,7 @@
 from datetime import datetime
 from dateutil import tz
 import math
+import numpy.random as random
 import suntime
 
 from lib.enums import TimeOfDay
@@ -20,6 +21,8 @@ class Location:
         """
         self.lat = float(lat)
         self.lon = float(lon)
+        self.sunrise = None
+        self.sunset = None
         
     def distance_to(self, other):
         """Gives the distance between this location and another location.
@@ -50,11 +53,12 @@ class Location:
         Args:
           t: Timezone-aware time (such as simulation.t).
         """
-        sun = suntime.Sun(self.lat, self.lon)
-        today = t.date()
-        sunrise = sun.get_local_sunrise_time(date=today, local_time_zone=t.tzinfo)
-        sunset = sun.get_local_sunset_time(date=today, local_time_zone=t.tzinfo)
-        if sunrise.timetz() < t.timetz() < sunset.timetz():
+        if not self.sunrise:
+            sun = suntime.Sun(self.lat, self.lon)
+            today = t.date()
+            self.sunrise = sun.get_local_sunrise_time(date=today, local_time_zone=t.tzinfo)
+            self.sunset = sun.get_local_sunset_time(date=today, local_time_zone=t.tzinfo)
+        if self.sunrise.timetz() < t.timetz() < self.sunset.timetz():
             return TimeOfDay.DAY
         else:
             return TimeOfDay.NIGHT
@@ -67,7 +71,14 @@ class Location:
     
     def to_string(self):
         return '({}, {})'.format(self.lat, self.lon)
-    
+
+def random_location():
+    """Generate a random location approximately somewhere in China.
+    Only used to give a somewhat realistic distribution of sunrise/sunset times for roaming TELs."""
+    lat = random.uniform(25, 45)
+    lon = random.uniform(80, 120)
+    return Location(lat, lon)
+
 # Tests
 tokyo = Location(35.5895, 139.6917)
 rio = Location(-22.9068, -43.1729)

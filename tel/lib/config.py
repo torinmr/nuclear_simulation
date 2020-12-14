@@ -1,9 +1,10 @@
 from copy import copy
 from dataclasses import dataclass, field
 from datetime import timedelta
+import math
 from typing import Optional, FrozenSet, List, Tuple, Dict
 
-from lib.enums import TELKind, TELState, TLOKind
+from lib.enums import TELKind, TELState, TLOKind, Weather, SimulationMode
 
 @dataclass
 class DefaultConfig:
@@ -18,7 +19,11 @@ class DefaultConfig:
     tel_schedule: Tuple[Tuple[timedelta, TELState], ...] = ()
         
     # TEL speed (in km/h).
-    tel_speed_kmph: float = 20
+    tel_speed_kmph: float = 0
+        
+    # Maximum distance away from base a TEL can travel. For TELs that return to base at the end of each roam,
+    # Actual roam distance is the lesser of this/2 and tel_speed_kmph*roam_time/2.
+    tel_max_range_km: float = 0
     
     # Fraction of time that TELs practice emissions control (radio silence).
     # A TEL decides to practice EMCON at the beginning of each state transition, doesn't change its mind
@@ -37,22 +42,47 @@ class DefaultConfig:
     # truck drives 2/12 nighttime hours and 4/12 daytime hours on average.
     daytime_truck_utilization: float = 1/3
     nighttime_truck_utilization: float = 1/6
-        
+    
     # Files containing external data.
     bases_filename: str = 'data/tel_bases.csv'
         
     # How long passes between the weather changes. Per Jones, P. A. (1992) (https://doi.org/10.1175/1520-0450(1992)031%3C0732:CCDAC%3E2.0.CO;2)
     # Figure 5, cloud cover is significantly temporally decorrelated after 6-12 hours.
     weather_change_frequency: timedelta = timedelta(hours=6)
-        
-    # Probability of seeing a TEL at a given moment in time when it's cloudy.
+
+    weather_probabilities: Dict[Weather, float] = field(default_factory=lambda: {
+        Weather.CLEAR: .3,
+        Weather.CLOUDY: .35,
+        Weather.OVERCAST: .35,
+    })
+    # Probability of observing a TEL with EO at a given moment in time when it's cloudy.
     cloudy_visibility: float = 0.5
+   
+    # Total area of China.
+    area_of_china_km2: int = 9_388_250
+    population_of_china: int = 1_394_000_000
         
-    # TODO: Should this be switched to a per-base value?
-    total_eo_tiles: int = 20_000_000
+    # Percentage of China's area that is observable from within 400km of the coast.
+    # Rough guesstimate. Only used in free roaming mode, otherwise base-local data is used.
+    offshore_observability: float = .4
+
+    # How many 250m x 250m tiles need to be examined per km2 of land area.
+    # Would be naively be 16, but is adjusted downward based on the density of roads in China.
+    # China has around .52 km of road per km2 of area and 4 tiles can cover one km of road, so
+    # about 2.1 satellite tiles per km2 are needed on average.
+    satellite_tiles_per_road_km: float = 4
+    road_km_per_km2: float = .5221
+        
+    # Total count of (heavy) trucks in China.
+    trucks_in_china: int = 1_115_000
+        
+    simulation_mode: SimulationMode = SimulationMode.BASE_LOCAL
         
     # How many minutes pass between SAR passes of a particular region of China.
-    sar_cadence_min: int = 60
+    # Includes overhead time, so cadency=30 duration=5 means 25 minutes off, 5 minutes on.
+    sar_cadence_min: int = 30
+    # How long each SAR pass lasts (maintains visibility of a given point).
+    sar_duration_min: int = 5
         
     # TODO: Make this not a wild guess.
     per_base_sar_tiles: int = 2_000_000
@@ -76,6 +106,33 @@ class DefaultConfig:
         TLOKind.SECRET_DECOY: .95*.9,
     })
     human_examples_per_minute: float = 7800
+        
+    def __post_init__(self):
+        satellite_tiles_per_km2 = self.road_km_per_km2 * self.satellite_tiles_per_road_km
+        
+        if self.simulation_mode == SimulationMode.BASE_LOCAL:
+            # Max roaming time of a TEL based on its schedule.
+            self.max_roam_time = timedelta()
+            for (duration, state) in self.tel_schedule:
+                if state == TELState.ROAMING and duration > self.max_roam_time:
+                    self.max_roam_time = duration
+
+            # How far TELs can travel from base and the area they can cover, assuming they must return
+            # afterwards.
+            self.tel_radius_km = min(self.tel_speed_kmph * (self.max_roam_time / timedelta(hours=1)) / 2,
+                                     self.tel_max_roam_km / 2)
+            self.tel_area_km2 = math.pi * self.tel_radius_km**2
+            
+            self.satellite_tiles_per_base = self.tel_area_km2 * satellite_tiles_per_km2
+
+            # Number of heavy trucks per person on average.
+            self.trucks_per_person = self.trucks_in_china / self.population_of_china
+
+        elif self.simulation_mode == SimulationMode.FREE_ROAMING:
+            self.satellite_tiles = satellite_tiles_per_km2 * self.area_of_china_km2
+        
+        # Percentage of time a given location is visible from SAR satellites.
+        self.sar_uptime = self.sar_duration_min / self.sar_cadence_min
     
 @dataclass
 class LowAlert(DefaultConfig):
@@ -88,6 +145,8 @@ class LowAlert(DefaultConfig):
         (timedelta(minutes=30), TELState.ARRIVING_BASE),
     )
     tel_speed_kmph: float = 20
+    tel_max_roam_km: float = 250
+    simulation_mode: SimulationMode = SimulationMode.BASE_LOCAL
     emcon_fraction: float = 0
     decoy_ratio: float = 0
     secret_decoy_ratio: float = 0
@@ -103,6 +162,8 @@ class MediumAlert(DefaultConfig):
         (timedelta(minutes=30), TELState.ARRIVING_BASE),
     )
     tel_speed_kmph: float = 40
+    tel_max_roam_km: float = 750
+    simulation_mode: SimulationMode = SimulationMode.BASE_LOCAL
     emcon_fraction: float = .5
     decoy_ratio: float = 1
     secret_decoy_ratio: float = 0
@@ -118,6 +179,7 @@ class HighAlert(DefaultConfig):
         (timedelta(hours=4), TELState.SHELTERING),
     )
     tel_speed_kmph: float = 69
+    simulation_mode: SimulationMode = SimulationMode.FREE_ROAMING
     emcon_fraction: float = 1
     decoy_ratio: float = 1
     secret_decoy_ratio: float = 1
