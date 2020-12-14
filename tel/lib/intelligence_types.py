@@ -94,9 +94,3 @@ class File:
         
     def add_observation(self, o):
         self.obs.append(o)
-
-def observation_stats(obs):
-    """Print stats on a collection of observations."""
-    return "{} TELs observed, {} non-TEL observations".format(
-        sum([o.multiplicity for o in obs if o.tlo and o.tlo.kind == TLOKind.TEL]),
-        sum([o.multiplicity for o in obs if o.tlo is None or o.tlo.kind != TLOKind.TEL]))
