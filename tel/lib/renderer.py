@@ -85,25 +85,28 @@ class Renderer:
         ax.set_ylabel('Area to destroy (1000 km^2)')
         ax.legend(loc='upper left')
         plt.savefig(self.c.output_dir + '/area.png')
+        plt.cla()
 
-        fig, ax = plt.subplots()
         fig.dpi = 200
         time_plotter(ax, ts, avg_roam_time_min, {})
         ax.set_ylabel('Average roaming time since last detection')
         plt.savefig(self.c.output_dir + '/roam.png')
+        plt.cla()
         
-        fig, ax = plt.subplots()
         fig.dpi = 200
         time_plotter(ax, ts, missiles_remaining, {'label': 'Total TELs remaining'})
         time_plotter(ax, ts, mated_missiles_remaining, {'label': 'Mated TELs remaining'})
         ax.set_ylabel('Number remaining')
         ax.legend(loc='upper left')
         plt.savefig(self.c.output_dir + '/remaining.png')
+        plt.cla()
         
-        fig, ax = plt.subplots()
         fig.dpi = 200
         time_plotter(ax, ts, retaliation_prob, {'label': 'Retaliation probability'})
         ax.set_ylabel('Probability of successful retaliation')
         plt.savefig(self.c.output_dir + '/retaliation.png')
+        plt.cla()
+        
+        plt.close(fig)
 
         
