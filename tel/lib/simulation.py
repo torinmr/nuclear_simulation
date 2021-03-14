@@ -155,3 +155,7 @@ class Simulation:
             self._schedule_event_at_time(repeat_event, self.t + delta)
         else:
             self._schedule_event_at_time(event, self.t + delta)
+            
+def run(c, runtime=timedelta(hours=24), rng_seed=42):
+    s = Simulation(runtime=runtime, c=c, rng_seed=rng_seed)
+    s.run()

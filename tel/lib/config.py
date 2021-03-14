@@ -133,14 +133,12 @@ class DefaultConfig:
         
     # Description of US nuclear arsenal. Also determines order of using missiles - earlier missiles
     # are used first (against the "easiest" targets).
-    arsenal: Tuple[NukeType, ...] = (
-        NukeType('Pacific W76-1', timedelta(minutes=12.4), 405, 31.2),
-        NukeType('Pacific W88', timedelta(minutes=12.4), 135, 91.9),  
-        NukeType('Distant W76-1', timedelta(minutes=24.8), 270, 31.2),
-        NukeType('Distant W88', timedelta(minutes=24.8), 90, 91.9),
-        NukeType('W78', timedelta(minutes=30), 120, 74.9),
-        NukeType('W87', timedelta(minutes=30), 60, 69.6),
-    )
+    num_pacific_w76_1 : int = 405
+    num_pacific_w88 : int = 135
+    num_distant_w76_1 : int = 270
+    num_distant_w88 : int = 90
+    num_w78 : int = 120
+    num_w87 : int = 60
         
     # How many nukes the US launches at each TEL to ensure destruction.
     nukes_per_tel: int = 2
@@ -154,6 +152,15 @@ class DefaultConfig:
         
     def __post_init__(self):
         satellite_tiles_per_km2 = self.road_km_per_km2 * self.satellite_tiles_per_road_km
+        
+        self.arsenal = (
+            NukeType('Pacific W76-1', timedelta(minutes=12.4), self.num_pacific_w76_1, 31.2),
+            NukeType('Pacific W88', timedelta(minutes=12.4), self.num_pacific_w88, 91.9),  
+            NukeType('Distant W76-1', timedelta(minutes=24.8), self.num_distant_w76_1, 31.2),
+            NukeType('Distant W88', timedelta(minutes=24.8), self.num_distant_w88, 91.9),
+            NukeType('W78', timedelta(minutes=30), self.num_w78, 74.9),
+            NukeType('W87', timedelta(minutes=30), self.num_w87, 69.6),
+        )
         
         if self.simulation_mode == SimulationMode.BASE_LOCAL:
             # Max roaming time of a TEL based on its schedule.
@@ -236,12 +243,12 @@ base_configs = {
     'high': HighAlert,
 }
 
-test_configs = []
+static_configs = []
 for alert_level, C in base_configs.items():
-    test_configs.append(C(output_dir='output/normal_{}'.format(alert_level)))
-    test_configs.append(C(output_dir='output/full_sar_{}'.format(alert_level),
+    static_configs.append(C(output_dir='output/normal_{}'.format(alert_level)))
+    static_configs.append(C(output_dir='output/full_sar_{}'.format(alert_level),
                           sar_duration_min=30))
-    test_configs.append(C(output_dir='output/no_ai_{}'.format(alert_level),
+    static_configs.append(C(output_dir='output/no_ai_{}'.format(alert_level),
                           ml_positive_rates={
                               TLOKind.TEL:   1,
                               TLOKind.TRUCK: 1,
@@ -250,5 +257,6 @@ for alert_level, C in base_configs.items():
                           },
                           ml_non_tlo_positive_rate=1,
                           ml_processing_duration=timedelta()))
-    test_configs.append(C(output_dir='output/double_tels_{}'.format(alert_level),
+    static_configs.append(C(output_dir='output/double_tels_{}'.format(alert_level),
                           tel_count_multiplier=2))
+    
