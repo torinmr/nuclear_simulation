@@ -57,8 +57,8 @@ def run_stochastic(BaseConfig, output_name, iterations=10):
     print("Iteration 1")
     print("Initial config:")
     print(c)
-    run(c)
     print()
+    run(c)
     for i in range(2, iterations+1):
         new_c = BaseConfig(output_dir='output/{}/{:02d}'.format(output_name, i))
         print("Iteration", i)
@@ -66,5 +66,5 @@ def run_stochastic(BaseConfig, output_name, iterations=10):
             if c.__dict__[k] != v:
                 print("Parameter {} updated to {}".format(k, v))
         c = new_c
-        run(c)
         print()
+        run(c)

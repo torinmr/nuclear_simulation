@@ -18,6 +18,17 @@ def time_plotter(ax, ts, y, param_dict):
     ax.xaxis.set_major_locator(AutoDateLocator(tz=tz))
     out = ax.plot(x, y, linewidth=.5, **param_dict)
 
+def print_summary(y, name):
+    print('{}:'.format(name))
+    print('  Mean           : {:02f}'.format(np.mean(y)))
+    print('  1st  percentile: {:02f}'.format(np.percentile(y, 1)))
+    print('  10th percentile: {:02f}'.format(np.percentile(y, 10)))
+    print('  50th percentile: {:02f}'.format(np.percentile(y, 50)))
+    print('  90th percentile: {:02f}'.format(np.percentile(y, 90)))
+    print('  99th percentile: {:02f}'.format(np.percentile(y, 99)))
+    print()
+    
+    
 class Renderer:
     def __init__(self, c, save_folder):
         self.c = c
@@ -80,6 +91,7 @@ class Renderer:
         fig, ax = plt.subplots()
         fig.dpi = 200
         for time, areas in area_to_destroy_by_time.items():
+            print_summary(areas, 'Area to destroy at {}m'.format(time))
             time_plotter(ax, ts, areas,
                          {'label': '{}m delay'.format(time)})
         ax.set_ylabel('Area to destroy (1000 km^2)')
@@ -88,12 +100,15 @@ class Renderer:
         plt.cla()
 
         fig.dpi = 200
+        print_summary(avg_roam_time_min, 'Average roaming time since last detection')
         time_plotter(ax, ts, avg_roam_time_min, {})
         ax.set_ylabel('Average roaming time since last detection')
         plt.savefig(self.c.output_dir + '/roam.png')
         plt.cla()
         
         fig.dpi = 200
+        print_summary(missiles_remaining, 'Total TELs remaining')
+        print_summary(mated_missiles_remaining, 'Mated TELs remaining')
         time_plotter(ax, ts, missiles_remaining, {'label': 'Total TELs remaining'})
         time_plotter(ax, ts, mated_missiles_remaining, {'label': 'Mated TELs remaining'})
         ax.set_ylabel('Number remaining')
@@ -102,6 +117,7 @@ class Renderer:
         plt.cla()
         
         fig.dpi = 200
+        print_summary(retaliation_prob, 'Retaliation probability')
         time_plotter(ax, ts, retaliation_prob, {'label': 'Retaliation probability'})
         ax.set_ylabel('Probability of successful retaliation')
         plt.savefig(self.c.output_dir + '/retaliation.png')
