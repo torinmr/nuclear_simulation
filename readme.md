@@ -35,6 +35,6 @@ future event for the missile's impact. It also calculates how long the launcher 
 need to reload, and enqueues a future event for when the launcher will be able to
 fire again.
 
-There are several versions of the simulation, in subdirectories of `/lib`, exploring
-different aspects. A good entry point for exploring each one is `simulation.py`, which
-holds the core simulation loop and initializes all of the other entities.
+There are several versions of the simulation in different subdirectories. A good entry
+point for exploring each one is `lib/simulation.py`, which holds the core simulation loop
+and initializes all of the other entities.
